@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Live ride · Spoke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Spoke live viewer: follow a rider in real time from an encrypted share link. */
+:root{--bg:#0b0d10;--card:#15191f;--line:#242a33;--ink:#f4f6f8;--dim:#8a94a3;--go:#19c37d;--stop:#ff4d4f;--acc:#ffd400}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-ui,sans-serif;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.num{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font:700 24px/1.1 "Barlow Condensed",sans-serif;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--dim);white-space:nowrap}
+.pill.live{background:var(--go);color:#03140b}.pill.end{background:#1d4ed8;color:#fff}.pill.stale{background:#5a4a00;color:#ffe680}
+.sos{display:none;background:var(--stop);color:#fff;padding:14px;margin:10px;border-radius:14px}
+.sos.on{display:block;animation:pulse 1.2s ease-in-out infinite alternate}
+.sos h2{margin:0 0 4px;font:700 26px/1.1 "Barlow Condensed",sans-serif}
+.sos a{color:#fff;font-weight:700}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(255,77,79,.6)}to{box-shadow:0 0 0 10px rgba(255,77,79,0)}}
+main{flex:1;position:relative;min-height:300px}
+#map{position:absolute;inset:0}
+.msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--dim);z-index:2;pointer-events:none}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.stats div{background:var(--bg);padding:10px 6px;text-align:center;font-size:12px;color:var(--dim);font-weight:600}
+.stats b{display:block;color:var(--ink);font-size:clamp(20px,6.2vw,40px);margin-top:3px;white-space:nowrap}
+.me{width:22px;height:22px;border-radius:50%;background:#0a84ff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.me.sosm{background:var(--stop);animation:pulse 1s infinite alternate}
+.foot{font-size:12px;color:var(--dim);padding:6px 14px 10px}
+@media(prefers-reduced-motion:reduce){.sos.on,.me.sosm{animation:none}}
+</style>
+</head>
+<body>
+<header><h1 id="who">Live ride</h1><span class="pill" id="pill">Connecting…</span></header>
+<div class="sos" id="sos" role="alert"></div>
+<main><div id="map"></div><div class="msg" id="msg">Waiting for the rider's first update…</div></main>
+<div class="stats">
+  <div>Speed<b class="num" id="sSpd">--</b></div>
+  <div>Heart rate<b class="num" id="sHr">--</b></div>
+  <div>Distance<b class="num" id="sDist">--</b></div>
+  <div>Moving<b class="num" id="sMov">--</b></div>
+</div>
+<div class="foot" id="foot">Updates about once a minute. End-to-end encrypted: only people with this link can read it.</div>
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const [topic, k64] = (location.hash.slice(1)||'').split('.');
+let key=null, last=null, trail=[], map=null, mk=null, ready=false;
+const b64d = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+async function dec(m){ const raw=b64d(m), iv=raw.slice(0,12), ct=raw.slice(12);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct))); }
+const fmtT=s=>{s=Math.floor(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return `${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`;};
+function ago(t){ const s=Math.max(0,Math.round((Date.now()-t)/1000)); return s<60?s+' s ago':s<3600?Math.round(s/60)+' min ago':Math.round(s/3600)+' h ago'; }
+
+function apply(p){
+  if(!p || !p.t) return;
+  for(const q of (p.p||[])) if(!trail.length || q[0]>trail[trail.length-1][0]) trail.push(q);
+  if(p.la!=null && (!trail.length || p.t>trail[trail.length-1][0])) trail.push([p.t,p.la,p.lo]);
+  if(!last || p.t>=last.t) last=p;
+}
+function render(){
+  if(!last){ return; }
+  const imp=last.u!=='met';
+  $('who').textContent = (last.n ? last.n+"'s ride" : 'Live ride') + (last.r ? ' · '+last.r : '');
+  document.title = (last.sos?'SOS · ':'')+$('who').textContent;
+  $('sSpd').textContent = last.s!=null ? (imp?last.s*0.621371:last.s).toFixed(1) : '--';
+  $('sHr').textContent = last.h ?? '--';
+  $('sDist').textContent = last.d!=null ? (imp?last.d*0.621371:last.d).toFixed(1)+(imp?' mi':' km') : '--';
+  $('sMov').textContent = fmtT(last.m);
+  const age=Date.now()-last.t, pill=$('pill');
+  if(last.end){ pill.className='pill end'; pill.textContent='Ride ended '+ago(last.t); }
+  else if(age>5*60000){ pill.className='pill stale'; pill.textContent='No update '+ago(last.t); }
+  else { pill.className='pill live'; pill.textContent='Live · '+ago(last.t); }
+  const sos=$('sos');
+  if(last.sos){
+    const loc = last.la!=null ? `${last.la.toFixed(5)}, ${last.lo.toFixed(5)}` : 'unknown';
+    sos.innerHTML = `<h2>SOS: ${esc(last.n||'The rider')} pressed the emergency button</h2>
+      <div>${ago(last.t)} at <b>${esc(loc)}</b>${last.a?` (±${Math.round(last.a)} m)`:''}.
+      ${last.la!=null?`<a href="https://maps.google.com/?q=${last.la},${last.lo}" rel="noopener">Open in Maps</a>.`:''}
+      Try calling them. If you can't reach them, call emergency services and give this location.</div>`;
+    sos.classList.add('on');
+  } else sos.classList.remove('on');
+  $('msg').style.display = trail.length ? 'none' : 'flex';
+  if(ready && last.la!=null){
+    map.getSource('trail').setData({type:'Feature',geometry:{type:'LineString',coordinates:trail.map(q=>[q[2],q[1]])}});
+    mk.setLngLat([last.lo,last.la]); mk.getElement().classList.toggle('sosm', !!last.sos);
+    if(!render.fitted){ render.fitted=true; map.jumpTo({center:[last.lo,last.la], zoom:14}); }
+  }
+}
+function initMap(){
+  if(!window.maplibregl) return;
+  try{
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    map=new maplibregl.Map({container:'map', style:'https://tiles.openfreemap.org/styles/'+(dark?'dark':'liberty'), center:[-96.8,32.78], zoom:11, attributionControl:{compact:true}});
+    const el=document.createElement('div'); el.className='me'; mk=new maplibregl.Marker({element:el}).setLngLat([-96.8,32.78]).addTo(map);
+    map.on('load',()=>{ map.addSource('trail',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+      map.addLayer({id:'trail-c',type:'line',source:'trail',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#fff','line-width':8}});
+      map.addLayer({id:'trail',type:'line',source:'trail',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ff7a00','line-width':5}});
+      ready=true; render(); });
+  }catch{ map=null; }
+}
+async function handle(m){ try{ apply(await dec(m)); }catch{} }
+async function start(){
+  if(!topic || !k64 || !/^[a-z0-9]{10,64}$/.test(topic)){ $('msg').textContent='This tracking link is incomplete. Ask the rider to share it again.'; $('pill').textContent='Invalid link'; return; }
+  try{ key=await crypto.subtle.importKey('raw', b64d(k64), 'AES-GCM', false, ['decrypt']); }
+  catch{ $('msg').textContent='This tracking link is damaged. Ask the rider to share it again.'; return; }
+  initMap();
+  try{
+    const r=await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=all`);
+    const lines=(await r.text()).split('\n').filter(Boolean);
+    for(const l of lines){ try{ const j=JSON.parse(l); if(j.event==='message' && j.message) await handle(j.message); }catch{} }
+    render();
+  }catch{ $('pill').textContent='Offline'; }
+  const es=new EventSource(`https://ntfy.sh/${topic}/sse`);
+  es.onmessage = async e=>{ try{ const j=JSON.parse(e.data); if(j.event==='message' && j.message){ await handle(j.message); render(); } }catch{} };
+  setInterval(render, 1000);
+}
+start();
+}
+</script>
+</body>
+</html>

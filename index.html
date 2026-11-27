@@ -31,6 +31,7 @@ header .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:n
 header .dot.on{background:var(--go)}header .dot.warn{background:var(--z4)}
 header span{white-space:nowrap}
 header .gap{margin-right:4px}
+@media(max-width:380px){header .gap,header span:not(.right):not(.dot):not(#batt):not(.clock){font-size:0}header .dot{margin-right:3px}}
 #batt{color:var(--ink);font-weight:600}#batt.low{color:var(--stop)}
 header .right{margin-left:auto;display:flex;align-items:center;gap:8px}
 header .clock{color:var(--ink);font-size:17px}
@@ -164,6 +165,19 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 .linkbtn{background:none;border:0;color:var(--dim);text-decoration:underline;min-height:44px;font-size:14px}
 .bkb{display:flex;gap:8px;margin-top:10px}.bkb button{flex:1}
 #bkOwner,#bkRepo,#bkTok{width:min(210px,54vw)}
+.sosb{position:relative;overflow:hidden;min-height:34px;padding:0 10px;border:0;border-radius:9px;background:var(--stop);color:#fff;font:700 14px Barlow,sans-serif;letter-spacing:.04em;touch-action:none;-webkit-user-select:none;user-select:none}
+.sosb .fill{position:absolute;inset:0;background:rgba(255,255,255,.45);transform:scaleX(0);transform-origin:left;pointer-events:none}
+.sosb.hold .fill{transform:scaleX(1);transition:transform 1.5s linear}
+body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
+@keyframes sosp{from{box-shadow:0 0 0 0 rgba(255,77,79,.7)}to{box-shadow:0 0 0 8px rgba(255,77,79,0)}}
+.mbox.sosm{background:#2a0b0c;color:#fff}
+.mbox.sosm .note{color:#ffcfd0}
+.sosloc{margin:6px 0 0;font-size:14px;color:#ffcfd0}.sosloc b{font-size:30px;color:#fff}
+.sosbig{display:flex;align-items:center;justify-content:center;min-height:68px;margin:12px 0 4px;border-radius:14px;background:var(--stop);color:#fff;font:700 30px "Barlow Condensed",sans-serif;text-decoration:none}
+.sosc{display:flex;align-items:center;justify-content:center;min-height:54px;margin-top:8px;border-radius:12px;background:#fff;color:#2a0b0c;font-weight:700;text-decoration:none;text-align:center;padding:0 12px}
+.emr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px;margin-top:8px}.emr input{width:100%;text-align:left}
+.lklink{font-size:13px;color:var(--dim);overflow-wrap:anywhere;margin:8px 0 0;-webkit-user-select:all;user-select:all}
+@media(prefers-reduced-motion:reduce){body.sosmode .sosb{animation:none}.sosb.hold .fill{transition:none}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}#bLock.hold .fill{transition:none}}
 </style>
 </head>
@@ -175,6 +189,7 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
   <span class="dot" id="dCsc"></span><span>S/C</span>
   <span class="right">
     <span id="batt"></span>
+    <button id="bSos" class="sosb" aria-label="SOS: hold for 2 seconds"><span class="fill"></span>SOS</button>
     <button id="bSun" aria-pressed="false">Sun</button>
     <span class="clock num" id="clock">--:--</span>
   </span>
@@ -281,6 +296,21 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
     <label class="row">Sunlight mode<select id="sun"><option value="0">Off</option><option value="1">On</option></select></label>
   </div>
   <p class="note">Touch lock: tap the padlock to lock; hold it for about a second to unlock. Swiping between pages and the Lap button still work while locked. 700x25c = 2105 mm, 700x28c = 2136, 700x32c = 2155.</p>
+  <h2>Live tracking</h2>
+  <div class="card">
+    <label class="row">Share live location<select id="liveOn"><option value="0">Off</option><option value="1">On during rides</option></select></label>
+    <label class="row">Your name for followers<input id="liveName" maxlength="30" autocomplete="off"></label>
+    <p class="note" id="liveStatus" style="margin:10px 0 0"></p>
+    <p class="lklink" id="liveLink"></p>
+    <div class="bkb"><button class="go" id="liveShare">Share link</button><button id="liveNew">New link</button></div>
+    <p class="note" style="margin:10px 0 0">Friends open the link to see your position, trail, speed, HR and distance, updated about every minute while a ride is running. Updates are encrypted; only people with the link can read them. Garmin LiveTrack on your watch works too.</p>
+  </div>
+  <h2>Emergency</h2>
+  <div class="card">
+    <label class="row">Emergency number<input id="emgNum" inputmode="tel" maxlength="6"></label>
+    <div id="emgList"></div>
+    <p class="note" style="margin:10px 0 0">Hold the red SOS button for 2 seconds, even when the screen is locked. You then get one-tap Call and Text buttons with your location, and live followers are alerted automatically.</p>
+  </div>
   <h2>Calibration</h2>
   <div class="card" id="calCard"></div>
   <h2>Backup</h2>
@@ -521,6 +551,7 @@ setInterval(()=>{
   }
   $('clock').textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
   render(sp);
+  try{ liveTick(); }catch{}
 }, 1000);
 
 /* ---------- render ---------- */
@@ -1113,7 +1144,7 @@ function setCtrl(){
 $('bStart').onclick=()=>{
   if(locked) return;
   audioOn(); voiceOn(); try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch{}
-  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); }
+  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); liveTrail=[]; if(LIVE.on){ LIVE.lastSent=0; livePost(); } }
   else if(state==='rec'){ state='paused'; toast('Paused'); }
   else { state='rec'; toast('Resumed'); }
   setCtrl();
@@ -1147,6 +1178,7 @@ async function finishRide(){
     distRaw:R.distRaw||0, rawGps:R.rawGps||0, rawWheel:R.rawWheel||0,
     cal:{kGps:CAL.kGps, kWheel:CAL.kWheel, eleTh:CAL.eleTh, apScale:CAL.apScale}, ap:S.ap,
     route: route ? route.name : null, backed:false, trackBacked:false, hasTrack:R.pts.length>0, maxHr:R.maxHr||null};
+  if(LIVE.on) livePost({end:1});
   const rides = LS.get('rc_rides',[]); rides.unshift(sum); LS.set('rc_rides', rides.slice(0,300));
   const ok = await putTrack(R.start, R.pts);
   if(!ok){ sum.hasTrack=false; LS.set('rc_rides', rides.slice(0,300)); toast('Phone storage is full: track not saved, summary kept'); }
@@ -1175,7 +1207,7 @@ function saveCal(){ LS.set('rc_cal', CAL); LS.set('rc_cal_dirty', 1); }
 function gainWith(eles, th){ let g=0, ref=null; for(const e of eles){ if(ref==null) ref=e; else if(e-ref>th){ g+=e-ref; ref=e; } else if(ref-e>th) ref=e; } return g; }
 const parseHMS = s => { const p=String(s).trim().split(':').map(Number); if(!p.length||p.some(isNaN)) return null; return p.reduce((a,b)=>a*60+b,0); };
 const pct = v => (v>0?'+':'')+v.toFixed(1)+'%';
-function openModal(html){ $('mbox').innerHTML=html; $('modal').classList.add('on'); }
+function openModal(html){ $('mbox').className='mbox'; $('mbox').innerHTML=html; $('modal').classList.add('on'); }
 function closeModal(){ $('modal').classList.remove('on'); }
 $('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
 
@@ -1362,6 +1394,109 @@ ${trk}
   toast('GPX saved. Upload it to Strava or Garmin Connect.');
 }
 
+/* ---------- live tracking (end-to-end encrypted, relayed by ntfy.sh) ---------- */
+const LIVE = Object.assign({on:0, name:'', topic:'', key:'', lastSent:0}, LS.get('rc_live',{}));
+const b64u = u8 => btoa(String.fromCharCode(...u8)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64uD = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+function liveEnsure(force){
+  if(force || !LIVE.topic || !LIVE.key){ LIVE.topic='spk'+rnd(24,'abcdefghijklmnopqrstuvwxyz0123456789'); const k=new Uint8Array(32); crypto.getRandomValues(k); LIVE.key=b64u(k); }
+  LS.set('rc_live', LIVE);
+}
+const liveLink = () => { const base = location.href.split('#')[0].replace(/[^/]*$/,''); return `${base}live.html#${LIVE.topic}.${LIVE.key}`; };
+let liveKey=null, liveTrail=[], liveFails=0;
+async function liveEnc(obj){
+  if(!liveKey) liveKey = await crypto.subtle.importKey('raw', b64uD(LIVE.key), 'AES-GCM', false, ['encrypt']);
+  const iv=new Uint8Array(12); crypto.getRandomValues(iv);
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, liveKey, new TextEncoder().encode(JSON.stringify(obj))));
+  const out=new Uint8Array(12+ct.length); out.set(iv); out.set(ct,12); return b64u(out);
+}
+function livePayload(extra={}){
+  const r=R||newRide();
+  return {v:1, n:LIVE.name||'', u:S.units, t:Date.now(), la:live.lat!=null?+live.lat.toFixed(5):null, lo:live.lon!=null?+live.lon.toFixed(5):null, a:live.acc!=null?Math.round(live.acc):null,
+    s:+curSpeed().v.toFixed(1), h:live.hr ?? null, d:+r.dist.toFixed(3), m:r.moving, r:route?route.name:null, p:liveTrail.slice(-4), sos:sosOn?1:0, end:0, ...extra};
+}
+async function livePost(extra){
+  if(!LIVE.on || !LIVE.topic) return false;
+  try{ const body=await liveEnc(livePayload(extra));
+    const res=await fetch('https://ntfy.sh/'+LIVE.topic, {method:'POST', body});
+    if(!res.ok) throw new Error('relay '+res.status);
+    LIVE.lastSent=Date.now(); LS.set('rc_live',LIVE); liveFails=0; liveStatus(); return true;
+  }catch(e){ liveFails++; liveStatus(e.message); return false; }
+}
+function liveTick(){
+  if(!LIVE.on) return;
+  if(state==='rec' && live.lat!=null && R && R.elapsed%15===0) { liveTrail.push([Date.now(), +live.lat.toFixed(5), +live.lon.toFixed(5)]); if(liveTrail.length>8) liveTrail.shift(); }
+  if(state!=='idle' && Date.now()-LIVE.lastSent >= (sosOn?15000:60000)) livePost();
+}
+function liveStatus(err){
+  const el=$('liveStatus'); if(!el) return;
+  el.style.color = err ? 'var(--stop)' : '';
+  el.textContent = !LIVE.on ? 'Off. Turn on to let friends follow your rides with the link below.' :
+    err ? `Couldn't send the last update (${err}). It retries automatically.` :
+    LIVE.lastSent ? `On · last update sent ${new Date(LIVE.lastSent).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}` : 'On · sends an update about every minute while you ride.';
+}
+function renderLive(){
+  $('liveOn').value=String(LIVE.on); $('liveName').value=LIVE.name; $('liveLink').textContent = LIVE.topic ? liveLink() : '';
+  liveStatus();
+}
+$('liveOn').addEventListener('change', e=>{ LIVE.on=+e.target.value; liveEnsure(); renderLive(); if(LIVE.on && state!=='idle') livePost(); });
+$('liveName').addEventListener('change', e=>{ LIVE.name=e.target.value.trim().slice(0,30); LS.set('rc_live',LIVE); });
+$('liveShare').onclick=async()=>{ liveEnsure(); const url=liveLink();
+  try{ if(navigator.share){ await navigator.share({title:'Follow my ride', text:`Follow my ride live${LIVE.name?' ('+LIVE.name+')':''}:`, url}); return; } }catch(e){ if(e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(url); toast('Link copied'); }catch{ toast('Copy the link shown above'); } };
+let newArmed=false;
+$('liveNew').onclick=()=>{ if(!newArmed){ newArmed=true; $('liveNew').textContent='Tap again: old link stops'; setTimeout(()=>{ newArmed=false; $('liveNew').textContent='New link'; },3000); return; }
+  newArmed=false; liveKey=null; liveEnsure(true); renderLive(); $('liveNew').textContent='New link'; toast('New link made. Share it again.'); };
+
+/* ---------- SOS ---------- */
+let sosOn=false, sosRetry=null;
+const EMG = Object.assign({num:'911', c:[{n:'',p:''},{n:'',p:''},{n:'',p:''}]}, LS.get('rc_emg',{}));
+function renderEmg(){
+  $('emgNum').value=EMG.num;
+  $('emgList').innerHTML = EMG.c.map((c,i)=>`<div class="emr"><input data-i="${i}" data-f="n" placeholder="Name" value="${String(c.n).replace(/"/g,'&quot;')}" autocomplete="off"><input data-i="${i}" data-f="p" type="tel" inputmode="tel" placeholder="Phone" value="${String(c.p).replace(/"/g,'&quot;')}" autocomplete="off"></div>`).join('');
+}
+$('emgNum').addEventListener('change', e=>{ EMG.num=e.target.value.replace(/[^0-9+]/g,'').slice(0,6)||'911'; LS.set('rc_emg',EMG); renderEmg(); });
+$('emgList').addEventListener('change', e=>{ const i=+e.target.dataset.i, f=e.target.dataset.f; if(!(i>=0)) return;
+  EMG.c[i][f] = f==='p' ? e.target.value.replace(/[^0-9+]/g,'').slice(0,16) : e.target.value.trim().slice(0,24); LS.set('rc_emg',EMG); });
+const sosBtn=$('bSos'); let sosHold=null;
+sosBtn.addEventListener('pointerdown', e=>{ e.preventDefault(); sosBtn.classList.add('hold'); buzz(30);
+  sosHold=setTimeout(()=>{ sosBtn.classList.remove('hold'); sosHold=null; sosActivate(); }, 1500); });
+const sosCancelHold=()=>{ if(sosHold){ clearTimeout(sosHold); sosHold=null; sosBtn.classList.remove('hold'); } };
+['pointerup','pointerleave','pointercancel'].forEach(ev=>sosBtn.addEventListener(ev, sosCancelHold));
+sosBtn.addEventListener('click', ()=>{ if(sosOn) sosScreen(); else toast('Hold SOS for 2 seconds'); });
+sosBtn.addEventListener('contextmenu', e=>e.preventDefault());
+function sosMsg(){
+  const t=new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  const loc = live.lat!=null ? ` My location: https://maps.google.com/?q=${live.lat.toFixed(5)},${live.lon.toFixed(5)} (±${Math.round(live.acc||0)} m at ${t}).` : ' My GPS location is not available yet.';
+  return `SOS from ${LIVE.name||'me'}: I need help.${loc}${LIVE.on&&LIVE.topic?' Live tracking: '+liveLink():''}`;
+}
+async function sosSend(){
+  clearTimeout(sosRetry);
+  if(!sosOn) return;
+  const ok = await livePost({sos:1});
+  const st=$('sosLive'); if(st) st.textContent = !LIVE.on ? 'Live tracking is off, so no one was alerted automatically. Use the buttons above.' : ok ? 'Live followers alerted ✓ (your tracking page is now red)' : 'No signal: retrying the alert to live followers…';
+  if(!ok && LIVE.on) sosRetry=setTimeout(sosSend, 15000);
+}
+function sosActivate(){
+  sosOn=true; document.body.classList.add('sosmode'); buzz([400,100,400]); try{ say && say('S O S activated'); }catch{}
+  sosScreen(); sosSend();
+}
+function sosScreen(){
+  const esc2=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const body=encodeURIComponent(sosMsg()), num=EMG.num||'911';
+  const contacts=EMG.c.filter(c=>c.p);
+  const loc = live.lat!=null ? `${live.lat.toFixed(5)}, ${live.lon.toFixed(5)}` : 'Waiting for GPS';
+  openModal(`<div class="sosbox"><h3>Emergency</h3>
+    <p class="sosloc">Your location<br><b class="num">${esc2(loc)}</b>${live.acc?` <span>±${Math.round(live.acc)} m</span>`:''}</p>
+    <a class="sosbig" href="tel:${esc2(num)}">Call ${esc2(num)}</a>
+    ${contacts.map(c=>`<a class="sosc" href="sms:${esc2(c.p)}?&body=${body}">Text ${esc2(c.n||c.p)} my location</a>`).join('') || '<p class="note">No emergency contacts yet. Add them in Settings, Emergency.</p>'}
+    <p class="note" id="sosLive" style="margin:10px 0 0">${LIVE.on?'Alerting live followers…':'Live tracking is off.'}</p>
+    <p class="note" style="margin:6px 0 0">Spoke can't call or text by itself: tap a button, then Call or Send. iPhone's own Emergency SOS (hold the side and volume buttons) calls automatically.</p>
+    <div class="mbtns"><button id="sosOk">I'm OK, cancel SOS</button></div></div>`);
+  $('mbox').classList.add('sosm');
+  $('sosOk').onclick=async()=>{ sosOn=false; clearTimeout(sosRetry); document.body.classList.remove('sosmode'); $('mbox').classList.remove('sosm'); closeModal(); toast('SOS cancelled'); if(LIVE.on) livePost({sos:0}); };
+}
+
 /* ---------- owner lock (PIN for Settings + Sensors) ---------- */
 let PINS = LS.get('rc_pin', null), unlockOK=false, pinFails=0, pinWaitUntil=0;
 const pinSet = () => !!(PINS && PINS.h);
@@ -1447,7 +1582,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg();
 }
 </script>
 </body>
