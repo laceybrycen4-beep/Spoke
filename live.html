@@ -8,21 +8,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 /* Spoke live viewer: follow a rider in real time from an encrypted share link. */
 :root{--bg:#0b0d10;--card:#15191f;--line:#242a33;--ink:#f4f6f8;--dim:#8a94a3;--go:#19c37d;--stop:#ff4d4f;--acc:#ffd400}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-ui,sans-serif;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.num{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 Overpass,system-ui,sans-serif;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.num{font-family:Overpass,system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
 header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
-header h1{margin:0;font:700 24px/1.1 "Barlow Condensed",sans-serif;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header h1{margin:0;font:700 24px/1.1 Overpass,sans-serif;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pill{font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--dim);white-space:nowrap}
 .pill.live{background:var(--go);color:#03140b}.pill.end{background:#1d4ed8;color:#fff}.pill.stale{background:#5a4a00;color:#ffe680}
 .sos{display:none;background:var(--stop);color:#fff;padding:14px;margin:10px;border-radius:14px}
 .sos.on{display:block;animation:pulse 1.2s ease-in-out infinite alternate}
-.sos h2{margin:0 0 4px;font:700 26px/1.1 "Barlow Condensed",sans-serif}
+.sos h2{margin:0 0 4px;font:700 26px/1.1 Overpass,sans-serif}
 .sos a{color:#fff;font-weight:700}
 @keyframes pulse{from{box-shadow:0 0 0 0 rgba(255,77,79,.6)}to{box-shadow:0 0 0 10px rgba(255,77,79,0)}}
 main{flex:1;position:relative;min-height:300px}

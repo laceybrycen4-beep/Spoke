@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* VOICE: cockpit instrument, glanceable at 25 mph
    IDEA: a bike head unit: swipeable data pages, huge digits, zone colors
@@ -28,10 +28,10 @@
 --z1:#5b6472;--z2:#0050d0;--z3:#0a7d4b;--z4:#c46a00;--z5:#c4161c;--z6:#8a1fc4}
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-ui,sans-serif;
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Overpass,system-ui,sans-serif;
 padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);display:flex;flex-direction:column;overflow:hidden;
 -webkit-user-select:none;user-select:none}
-.num{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.num{font-family:Overpass,system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
 header{display:flex;align-items:center;gap:5px;padding:4px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);flex-wrap:nowrap;white-space:nowrap}
 header .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
 header .dot.on{background:var(--go)}header .dot.warn{background:var(--z4)}
@@ -70,7 +70,7 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;padd
 .laps .r:first-child{color:var(--dim);font-size:13px}.laps .r span:first-child{text-align:left}
 .laps .r:last-child{border:0}
 .ctrl{display:flex;gap:8px;padding:8px;background:var(--bg);border-top:1px solid var(--line)}
-button{font:600 16px Barlow,system-ui,sans-serif;min-height:52px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;cursor:pointer;touch-action:manipulation}
+button{font:600 16px Overpass,system-ui,sans-serif;min-height:52px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button.go{background:var(--go);border-color:var(--go);color:#fff;flex:1;font-size:19px}
 button.pause{background:var(--acc);border-color:var(--acc);color:var(--accInk);flex:1;font-size:19px}
@@ -86,7 +86,7 @@ body.locked .ctrl button:not(#bLock):not(#bLap),body.locked nav button[data-v=se
 nav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav button{border:0;border-radius:0;background:transparent;color:var(--dim);font-size:14px;min-height:48px}
 nav button.on{color:var(--ink);box-shadow:inset 0 3px 0 var(--acc)}
-h2{font:700 22px "Barlow Condensed",sans-serif;margin:6px 2px 10px}
+h2{font:700 22px Overpass,sans-serif;margin:6px 2px 10px}
 .card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px}
 .sens{display:flex;align-items:center;gap:12px}
 .sens .meta{flex:1}.sens .meta b{display:block}.sens .meta span{font-size:13px;color:var(--dim)}
@@ -94,7 +94,7 @@ h2{font:700 22px "Barlow Condensed",sans-serif;margin:6px 2px 10px}
 .note{font-size:13px;color:var(--dim);margin:6px 2px 14px;-webkit-user-select:text;user-select:text}
 label.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 label.row:last-child{border:0}
-input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;width:140px;text-align:right}
+input,select{font:16px Overpass,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;width:140px;text-align:right}
 #v-map.on{display:flex;flex-direction:column;flex:1;min-height:0}
 .mapwrap{position:relative;flex:1;min-height:320px;border-radius:14px;overflow:hidden;background:var(--card)}
 #mapgl,#mapc{position:absolute;inset:0;width:100%;height:100%}
@@ -103,15 +103,15 @@ input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);b
 .mbtn{min-height:46px;min-width:46px;padding:0 12px;border:0;border-radius:12px;background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .mbtn.hide{display:none}
 .mapstrip{position:absolute;left:8px;right:8px;bottom:34px;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg);border-radius:14px;padding:8px 4px;box-shadow:0 4px 18px rgba(0,0,0,.35);text-align:center}
-.mapstrip div{font-size:12px;color:var(--dim);font-weight:600}.mapstrip b{display:block;color:var(--ink);font:700 clamp(26px,8vw,38px)/1 "Barlow Condensed",sans-serif;margin-top:2px;white-space:nowrap}
+.mapstrip div{font-size:12px;color:var(--dim);font-weight:600}.mapstrip b{display:block;color:var(--ink);font:700 clamp(26px,8vw,38px)/1 Overpass,sans-serif;margin-top:2px;white-space:nowrap}
 .navban{display:none;align-items:center;gap:12px;background:#0b6b3a;color:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
 .navban.on{display:flex}.navban.near{background:#12a150;box-shadow:0 0 0 3px #fff inset,0 4px 18px rgba(0,0,0,.3)}.navban.near .nd{font-size:clamp(40px,13vw,62px)}.navban.off{background:#b3261e}.navban.fin{background:#1d4ed8}
 .navban svg{width:54px;height:54px;flex:none}
 .navban .nx{flex:1;min-width:0}
-.navban .nd{font:700 clamp(30px,10vw,46px)/1 "Barlow Condensed",sans-serif;white-space:nowrap}
+.navban .nd{font:700 clamp(30px,10vw,46px)/1 Overpass,sans-serif;white-space:nowrap}
 .navban .nt{font-size:16px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .navban .nr{font-size:13px;opacity:.9;text-align:right;white-space:nowrap}
-.navban .nr b{display:block;font:700 22px/1 "Barlow Condensed",sans-serif}
+.navban .nr b{display:block;font:700 22px/1 Overpass,sans-serif}
 #navMap{position:absolute;top:8px;left:8px;right:8px;z-index:2}
 #navRide{margin-bottom:8px}
 .climb{display:none;background:var(--card);border-radius:14px;padding:8px 12px 6px;margin-bottom:8px;border-left:6px solid #ff7a00}
@@ -122,13 +122,13 @@ input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);b
 .climb svg{display:block;width:100%;height:40px;border-radius:6px;background:var(--bg)}
 #climbMap{position:absolute;left:8px;right:130px;bottom:118px;z-index:2;margin:0;box-shadow:0 4px 18px rgba(0,0,0,.35)}
 .prof svg{display:block;width:100%;height:70px;background:var(--card);border-radius:10px;margin-top:10px}
-.sheet h4{margin:16px 0 2px;font:700 18px "Barlow Condensed",sans-serif}
+.sheet h4{margin:16px 0 2px;font:700 18px Overpass,sans-serif}
 .sheet{position:absolute;left:8px;right:8px;top:8px;z-index:3;background:var(--bg);border-radius:14px;padding:14px;display:none;box-shadow:0 6px 24px rgba(0,0,0,.45);max-height:calc(100% - 16px);overflow-y:auto}
 .sheet.on{display:block}
-.sheet h3{margin:0 0 4px;font:700 22px "Barlow Condensed",sans-serif}
+.sheet h3{margin:0 0 4px;font:700 22px Overpass,sans-serif}
 .sheet .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .sheet .btns>*{flex:1 1 40%}
-.filebtn{display:flex;align-items:center;justify-content:center;font:600 16px Barlow,sans-serif;min-height:52px;border-radius:12px;background:var(--go);color:#fff;cursor:pointer;position:relative}
+.filebtn{display:flex;align-items:center;justify-content:center;font:600 16px Overpass,sans-serif;min-height:52px;border-radius:12px;background:var(--go);color:#fff;cursor:pointer;position:relative}
 .filebtn input{position:absolute;width:1px;height:1px;opacity:0}
 .cuelist{margin-top:12px;font-size:14px;border-top:1px solid var(--line)}
 .cuelist div{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}.cuelist span{color:var(--dim);white-space:nowrap;min-width:4.5em;text-align:right}
@@ -143,22 +143,22 @@ input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);b
 .toast.on{opacity:1}
 .lapban{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 44px);background:var(--acc);color:var(--accInk);border-radius:14px;padding:14px 16px;z-index:6;display:none}
 .lapban.on{display:block}
-.lapban .t{font:700 22px "Barlow Condensed",sans-serif}
+.lapban .t{font:700 22px Overpass,sans-serif}
 .lapban .g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}
-.lapban .g div{font-size:12px}.lapban .g b{display:block;font:700 clamp(24px,8vw,40px)/1 "Barlow Condensed",sans-serif}
+.lapban .g div{font-size:12px}.lapban .g b{display:block;font:700 clamp(24px,8vw,40px)/1 Overpass,sans-serif}
 body.paused .f.big .v{color:var(--acc)}
-body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--acc)}
+body.paused .f.big .l span:first-child::after{content:"  (paused)";color:#8a6d00}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10;display:none;align-items:flex-end;justify-content:center;padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
 .modal.on{display:flex}
 .mbox{background:var(--bg);color:var(--ink);border-radius:16px;padding:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.5)}
-.mbox h3{margin:0 0 4px;font:700 24px "Barlow Condensed",sans-serif}
+.mbox h3{margin:0 0 4px;font:700 24px Overpass,sans-serif}
 .cf{display:grid;grid-template-columns:minmax(0,1fr) auto 110px;gap:10px 10px;align-items:center}
 .cf .cfh{font-size:12px;color:var(--dim);font-weight:600;text-align:right}.cf .cfh:last-child{text-align:center}
 .cf .num{font-size:22px;text-align:right}.cf input{width:110px}
 .mbtns{display:flex;gap:8px;margin-top:14px}.mbtns button{flex:1}
 .tn{margin:8px 0;font-size:15px;line-height:1.35}
 .sumg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 4px}
-.sumg div{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--dim);font-weight:600}.sumg b{display:block;color:var(--ink);font:700 26px/1.05 "Barlow Condensed",sans-serif;margin-top:2px;white-space:nowrap}
+.sumg div{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--dim);font-weight:600}.sumg b{display:block;color:var(--ink);font:700 26px/1.05 Overpass,sans-serif;margin-top:2px;white-space:nowrap}
 .mbtns.col{flex-direction:column}
 .calg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .calg div{background:var(--bg);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--dim);font-weight:600}.calg b{display:block;color:var(--ink);font-size:26px;margin-top:2px}
@@ -167,11 +167,11 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 .hist .rb{display:flex;flex-direction:column;gap:6px;flex:none}.hist .rb button{min-height:40px;font-size:14px;padding:0 12px}
 .hist .ok{font-size:12px;color:var(--go);font-weight:600;text-align:right}
 .pinrow{display:flex;gap:8px;margin-top:10px}.pinrow input{flex:1;width:auto;text-align:center;letter-spacing:.3em}
-.recode{font:700 34px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.08em;text-align:center;background:var(--card);border-radius:12px;padding:14px;margin:10px 0;-webkit-user-select:all;user-select:all}
+.recode{font:700 34px/1.1 Overpass,sans-serif;letter-spacing:.08em;text-align:center;background:var(--card);border-radius:12px;padding:14px;margin:10px 0;-webkit-user-select:all;user-select:all}
 .linkbtn{background:none;border:0;color:var(--dim);text-decoration:underline;min-height:44px;font-size:14px}
 .bkb{display:flex;gap:8px;margin-top:10px}.bkb button{flex:1}
 #bkOwner,#bkRepo,#bkTok{width:min(210px,54vw)}
-.sosb{position:relative;overflow:hidden;min-height:34px;padding:0 10px;border:0;border-radius:9px;background:var(--stop);color:#fff;font:700 14px Barlow,sans-serif;letter-spacing:.04em;touch-action:none;-webkit-user-select:none;user-select:none}
+.sosb{position:relative;overflow:hidden;min-height:34px;padding:0 10px;border:0;border-radius:9px;background:var(--stop);color:#fff;font:700 14px Overpass,sans-serif;letter-spacing:.04em;touch-action:none;-webkit-user-select:none;user-select:none}
 .sosb .fill{position:absolute;inset:0;background:rgba(255,255,255,.45);transform:scaleX(0);transform-origin:left;pointer-events:none}
 .sosb.hold .fill{transform:scaleX(1);transition:transform 1.5s linear}
 body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
@@ -179,12 +179,104 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
 .mbox.sosm{background:#2a0b0c;color:#fff}
 .mbox.sosm .note{color:#ffcfd0}
 .sosloc{margin:6px 0 0;font-size:14px;color:#ffcfd0}.sosloc b{font-size:30px;color:#fff}
-.sosbig{display:flex;align-items:center;justify-content:center;min-height:68px;margin:12px 0 4px;border-radius:14px;background:var(--stop);color:#fff;font:700 30px "Barlow Condensed",sans-serif;text-decoration:none}
+.sosbig{display:flex;align-items:center;justify-content:center;min-height:68px;margin:12px 0 4px;border-radius:14px;background:var(--stop);color:#fff;font:700 30px Overpass,sans-serif;text-decoration:none}
 .sosc{display:flex;align-items:center;justify-content:center;min-height:54px;margin-top:8px;border-radius:12px;background:#fff;color:#2a0b0c;font-weight:700;text-decoration:none;text-align:center;padding:0 12px}
 .emr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px;margin-top:8px}.emr input{width:100%;text-align:left}
 .lklink{font-size:13px;color:var(--dim);overflow-wrap:anywhere;margin:8px 0 0;-webkit-user-select:all;user-select:all}
 @media(prefers-reduced-motion:reduce){body.sosmode .sosb{animation:none}.sosb.hold .fill{transition:none}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}#bLock.hold .fill{transition:none}}
+/* ===== Road-sign system =====
+   Spoke reads like the road: asphalt ground, a white regulatory panel for speed,
+   green guide signs for turns, yellow warning signs for climbs, a red octagon for SOS.
+   Type: Overpass (Highway Gothic lineage). One bold element per screen: the speed sign. */
+:root{--bg:#1d1f21;--card:#2a2d30;--line:#3b3f43;--ink:#fff;--dim:#a7adb3;--lane:rgba(255,255,255,.26);
+  --acc:#ffc72c;--accInk:#16170f;--go:#00704a;--stop:#e0323c;--sign:#fff;--signInk:#000;
+  --guide:#00704a;--warn:#ffc72c;--regred:#c8102e;--svc:#1f4e9c}
+:root.sun{--bg:#eeeeea;--card:#dcdcd7;--line:#bdbdb7;--ink:#000;--dim:#3f4246;--lane:rgba(0,0,0,.3);
+  --acc:#000;--accInk:#fff;--go:#00704a;--stop:#c8102e}
+body{font-family:Overpass,system-ui,sans-serif}
+.num{font-family:Overpass,system-ui,sans-serif;font-weight:800;letter-spacing:-.02em}
+/* header */
+header{gap:6px;padding:6px 12px;border-bottom:0;font-size:12px;font-weight:600}
+header .dot{width:8px;height:8px}
+header #dPw:not(.on),header #dPw:not(.on)+span,header #dCsc:not(.on),header #dCsc:not(.on)+span{display:none}
+header .clock{font-size:18px;font-weight:800}
+.hbtn{min-height:36px;width:36px;padding:0;border:0;background:transparent;color:var(--ink);display:grid;place-items:center}
+.hbtn svg{width:22px;height:22px}
+.sosb{width:40px;height:40px;min-height:40px;padding:0;border-radius:0;background:var(--regred);
+  clip-path:polygon(29.3% 0,70.7% 0,100% 29.3%,100% 70.7%,70.7% 100%,29.3% 100%,0 70.7%,0 29.3%);
+  box-shadow:inset 0 0 0 2px #fff;font:800 11px/1 Overpass,sans-serif;letter-spacing:0}
+.sosb .st{position:relative}
+/* pages: open road, lane lines instead of cards */
+main{padding:4px 12px 8px}
+.page{gap:0}
+.f{background:none;border-radius:0;padding:8px 2px 10px;border-top:2px dashed var(--lane)}
+.f .l{font-size:14px;font-weight:600;color:var(--dim)}
+.f .vb{align-items:center}
+.f .v small{color:var(--dim);font-weight:600;margin-left:6px}
+.p1 .f:nth-child(4),.p1 .f:nth-child(6),.p2 .f:nth-child(3),.p2 .f:nth-child(5),.p3 .f:nth-child(even){border-left:2px dashed var(--lane);padding-left:14px}
+.p1 .f.big+.f{border-top:0}
+/* speed: the regulatory sign */
+.f.big{background:var(--sign);color:var(--signInk);border:0;border-radius:14px;padding:12px 18px 10px;margin-bottom:10px;
+  box-shadow:inset 0 0 0 5px var(--sign),inset 0 0 0 9px var(--signInk)}
+.f.big .l{color:#3b3b3b;font-weight:700;padding:2px 4px 0}
+.f.big .vb{justify-content:center}
+.f.big .v{font-weight:900;letter-spacing:-.005em;font-size:min(86cqh,31cqw)}
+.f.big .v small{color:#3b3b3b;font-size:.3em;font-weight:700;letter-spacing:0}
+:root.sun .f.big{box-shadow:inset 0 0 0 5px var(--sign),inset 0 0 0 9px #000,0 0 0 2px #000}
+.f.big .l #spdSrc{font-weight:600;color:#6a6a6a}
+.f .bar{left:2px;right:2px;bottom:2px;height:6px;border-radius:3px}
+/* heart rate with no watch connected */
+#hrTile.nohr .v{visibility:hidden}
+#hrTile.nohr .vb::after{content:"Pair your watch in Sensors";color:var(--dim);font-size:16px;font-weight:600;position:absolute}
+#hrTile .vb{position:relative}
+.dots{padding:6px 0 0}.dots i{width:6px;height:6px;border-radius:0;transform:rotate(45deg)}
+/* turn: green guide sign */
+.navban{background:var(--guide);border-radius:12px;padding:12px 16px;box-shadow:inset 0 0 0 4px var(--guide),inset 0 0 0 6px #fff}
+.navban .nd{font-weight:900;letter-spacing:-.02em}
+.navban .nt{font-weight:700}
+.navban .nr b{font-weight:800}
+.navban.near{background:#00804f;box-shadow:inset 0 0 0 4px #00804f,inset 0 0 0 8px #fff}
+.navban.off{background:var(--regred);box-shadow:inset 0 0 0 4px var(--regred),inset 0 0 0 6px #fff}
+.navban.fin{background:var(--svc);box-shadow:inset 0 0 0 4px var(--svc),inset 0 0 0 6px #fff}
+/* climb: yellow warning sign */
+.climb{background:var(--warn);color:#111;border:0;border-radius:12px;padding:10px 14px 8px;box-shadow:inset 0 0 0 4px var(--warn),inset 0 0 0 6px #111}
+.climb .ch{color:#2b2b2b;font-weight:700}
+.climb .cn{color:#2b2b2b}
+.climb .cn b{color:#000;font-weight:900}
+.climb svg{background:rgba(0,0,0,.1)}
+/* controls */
+.ctrl{border-top:0;padding:8px 12px}
+button{font-weight:700;border-radius:10px}
+button.go{background:var(--guide);border-color:var(--guide);color:#fff;box-shadow:inset 0 0 0 3px var(--guide),inset 0 0 0 5px rgba(255,255,255,.85)}
+button.pause{background:var(--warn);border-color:var(--warn);color:#111;box-shadow:inset 0 0 0 3px var(--warn),inset 0 0 0 5px #111}
+button.stop{border-width:2px}
+#bLock .lt{display:none;position:relative;margin-left:8px;font-weight:700;order:2}
+#batt.chg{color:#2fbf71}
+body.locked #bLock{width:auto;flex:1;padding:0 14px;display:flex;align-items:center;justify-content:center}
+body.locked #bLock .lt{display:inline}
+body.locked .ctrl #bStart,body.locked .ctrl #bEnd{display:none}
+/* bottom nav */
+nav{border-top:1px solid var(--line)}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;min-height:56px}
+nav button svg{width:22px;height:22px}
+nav button.on{box-shadow:inset 0 3px 0 var(--acc)}
+/* map */
+.mapwrap{border-radius:12px}
+.mapbtns{gap:6px;bottom:112px}
+.mbtn{width:46px;min-width:46px;height:46px;min-height:46px;padding:0;display:grid;place-items:center;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.25),0 2px 8px rgba(0,0,0,.25)}
+.mbtn svg{width:22px;height:22px}
+.mbtn.on{background:var(--warn);color:#111}
+.mapstrip{border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.mapstrip b{font-weight:800}
+#climbMap{right:66px}
+/* type in sheets and modals */
+h2{font-weight:800;font-size:22px;margin:14px 2px 10px}
+.mbox h3,.sheet h3{font-weight:800}
+.lapban{background:var(--warn);color:#111;box-shadow:inset 0 0 0 4px var(--warn),inset 0 0 0 6px #111}
+.lapban .g b{font-weight:900}
+@media(max-width:360px){header .dot+span{display:none}}
+
 </style>
 </head>
 <body>
@@ -195,8 +287,8 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
   <span class="dot" id="dCsc"></span><span>S/C</span>
   <span class="right">
     <span id="batt"></span>
-    <button id="bSos" class="sosb" aria-label="SOS: hold for 2 seconds"><span class="fill"></span>SOS</button>
-    <button id="bSun" aria-pressed="false">Sun</button>
+    <button id="bSos" class="sosb" aria-label="SOS: hold for 2 seconds"><span class="fill"></span><span class="st">SOS</span></button>
+    <button id="bSun" class="hbtn" aria-pressed="false" aria-label="Sunlight mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <span class="clock num" id="clock">--:--</span>
   </span>
 </header>
@@ -210,7 +302,7 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
   <div class="pages" id="pages">
     <div class="page p1">
       <div class="f w big"><div class="l"><span>Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small class="uSpd">mph</small></div></div></div>
-      <div class="f w mid"><div class="l"><span>Heart rate</span><span class="zone" id="hrZ"></span></div><div class="vb"><div class="v num"><span id="hr">--</span><small>bpm</small></div></div><div class="bar" id="hrBar"></div></div>
+      <div class="f w mid" id="hrTile"><div class="l"><span>Heart rate</span><span class="zone" id="hrZ"></span></div><div class="vb"><div class="v num"><span id="hr">--</span><small>bpm</small></div></div><div class="bar" id="hrBar"></div></div>
       <div class="f"><div class="l"><span>Distance</span></div><div class="vb"><div class="v num"><span id="dist">0.00</span><small class="uDist">mi</small></div></div></div>
       <div class="f"><div class="l"><span id="aL">Avg speed</span><span class="zone" id="pwZ"></span></div><div class="vb"><div class="v num"><span id="aV">0.0</span><small id="aU">mph</small></div></div><div class="bar" id="pwBar"></div></div>
       <div class="f"><div class="l"><span>Moving time</span></div><div class="vb"><div class="v num tm" id="mov">0:00:00</div></div></div>
@@ -264,10 +356,10 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
       <div class="cuelist" id="cueList"></div>
     </div>
     <div class="mapbtns">
-      <button class="mbtn" id="bRoute">Route</button>
-      <button class="mbtn" id="bSat">Satellite</button>
-      <button class="mbtn" id="bFollow">Heading up</button>
-      <button class="mbtn hide" id="bRecenter">Recenter</button>
+      <button class="mbtn" id="bRoute" aria-label="Route and offline maps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg></button>
+      <button class="mbtn" id="bSat" aria-label="Show satellite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+      <button class="mbtn" id="bFollow" aria-label="Heading up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 18-7-4-7 4 7-18z"/></svg></button>
+      <button class="mbtn hide" id="bRecenter" aria-label="Recenter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
     </div>
     <div class="mapstrip">
       <div>Speed<b id="mSpd">0.0</b></div>
@@ -334,7 +426,7 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
 </main>
 
 <div class="ctrl" id="ctrl">
-  <button id="bLock" aria-label="Lock screen"><span class="fill"></span>
+  <button id="bLock" aria-label="Lock screen"><span class="fill"></span><span class="lt">Hold to unlock</span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="shackle" d="M8 11V7a4 4 0 0 1 8 0"/></svg></button>
   <button id="bLap" disabled>Lap</button>
   <button class="go" id="bStart">Start</button>
@@ -342,10 +434,10 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
 </div>
 
 <nav>
-  <button class="on" data-v="ride">Ride</button>
-  <button data-v="map">Map</button>
-  <button data-v="sensors">Sensors</button>
-  <button data-v="set">Settings</button>
+  <button class="on" data-v="ride"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/></svg><span>Ride</span></button>
+  <button data-v="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span>Map</span></button>
+  <button data-v="sensors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M12 13v7"/></svg><span>Sensors</span></button>
+  <button data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Settings</span></button>
 </nav>
 <div class="toast" id="toast"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="mbox" id="mbox"></div></div>
@@ -381,7 +473,7 @@ function applyUnits(){
 function applySun(){
   document.documentElement.classList.toggle('sun', !!S.sun);
   $('bSun').setAttribute('aria-pressed', S.sun?'true':'false');
-  $('bSun').textContent = S.sun ? 'Night' : 'Sun';
+  $('bSun').innerHTML = S.sun ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'; $('bSun').setAttribute('aria-label', S.sun ? 'Night mode' : 'Sunlight mode');
   document.querySelector('meta[name=theme-color]').content = S.sun ? '#ffffff' : '#0b0d10';
   $('sun').value = S.sun;
 }
@@ -449,7 +541,7 @@ else navigator.geolocation.watchPosition(p=>{
 /* ---------- battery ---------- */
 if(navigator.getBattery){
   navigator.getBattery().then(b=>{
-    const up=()=>{ const p=Math.round(b.level*100); $('batt').textContent=`${p}%${b.charging?'+':''}`; $('batt').classList.toggle('low', p<=20 && !b.charging);
+    const up=()=>{ const p=Math.round(b.level*100); $('batt').textContent=`${p}%`; $('batt').classList.toggle('chg', !!b.charging); $('batt').title=b.charging?'Charging':''; $('batt').classList.toggle('low', p<=20 && !b.charging);
       if(p===20 && !b.charging && !up.warned){ up.warned=true; toast('Phone battery at 20%'); } };
     up(); b.addEventListener('levelchange',up); b.addEventListener('chargingchange',up);
   }).catch(()=>{});
@@ -566,7 +658,7 @@ function setBar(el, zone){ el.style.background = zone ? zoneColor(zone) : 'trans
 function render(sp=curSpeed()){
   $('spd').textContent = kmhTo(sp.v).toFixed(1);
   $('spdSrc').textContent = sp.src;
-  $('hr').textContent = live.hr ?? '--';
+  $('hr').textContent = live.hr ?? '--'; $('hrTile').classList.toggle('nohr', live.hr==null);
   const hz = live.hr ? hrZone(live.hr) : 0; $('hrZ').textContent = hz?'Z'+hz:''; setBar($('hrBar'),hz);
   const p3 = live.lastPwT ? Math.round(live.pwBuf.reduce((a,b)=>a+b,0)/Math.max(1,live.pwBuf.length)) : null;
   const hasPw = !!live.lastPwT && fresh(live.lastPwT,15000), hasCad = !!live.lastCadT && fresh(live.lastCadT,15000);
@@ -1054,7 +1146,7 @@ function mapTick(){
 }
 function followUi(){
   $('bRecenter').classList.toggle('hide', follow!==0);
-  $('bFollow').textContent = (follow||lastMode)===2 ? 'Heading up' : 'North up';
+  const hu=(follow||lastMode)===2; $('bFollow').innerHTML = hu ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 18-7-4-7 4 7-18z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="17" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor" font-family="Overpass,sans-serif">N</text></svg>'; $('bFollow').setAttribute('aria-label', hu ? 'Heading up (tap for north up)' : 'North up (tap for heading up)');
 }
 $('bFollow').onclick=()=>{ lastMode = (follow||lastMode)===2 ? 1 : 2; follow=lastMode; followUi(); mapTick(); };
 $('bRecenter').onclick=()=>{ follow=lastMode; followUi(); mapTick(); };
@@ -1074,7 +1166,7 @@ function openMap(){
 
 const SAT_URL='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 function applySat(){
-  $('bSat').textContent = S.sat ? 'Streets' : 'Satellite';
+  $('bSat').classList.toggle('on', !!S.sat); $('bSat').setAttribute('aria-label', S.sat ? 'Show street map' : 'Show satellite');
   if(!mapReady) return;
   const has=!!map.getLayer('sat');
   if(S.sat && !has){
@@ -1098,7 +1190,7 @@ function drawFallback(){
   const cs=getComputedStyle(document.documentElement), cv=n=>cs.getPropertyValue(n).trim();
   const tr=(R?R.pts:[]).slice(), rp=route?route.pts:[];
   const all=tr.concat(rp); if(live.lat!=null) all.push({lat:live.lat,lon:live.lon});
-  if(!all.length){ g.fillStyle=cv('--dim'); g.font='16px Barlow,sans-serif'; g.textAlign='center'; g.fillText('Waiting for GPS fix…',W/2,H/2); return; }
+  if(!all.length){ g.fillStyle=cv('--dim'); g.font='16px Overpass,sans-serif'; g.textAlign='center'; g.fillText('Waiting for GPS fix…',W/2,H/2); return; }
   const k=Math.cos(all[0].lat*Math.PI/180);
   let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
   for(const p of all){const x=p.lon*k,y=-p.lat;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
