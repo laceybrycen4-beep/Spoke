@@ -83,7 +83,7 @@ button.stop{background:transparent;border-color:var(--stop);color:var(--stop)}
 button:disabled{opacity:.35}
 body.locked #bLock{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
 body.locked .ctrl button:not(#bLock):not(#bLap),body.locked nav button[data-v=sensors],body.locked nav button[data-v=set]{pointer-events:none;opacity:.3}
-nav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav button{border:0;border-radius:0;background:transparent;color:var(--dim);font-size:14px;min-height:48px}
 nav button.on{color:var(--ink);box-shadow:inset 0 3px 0 var(--acc)}
 h2{font:700 22px Overpass,sans-serif;margin:6px 2px 10px}
@@ -295,6 +295,33 @@ input,select{background:var(--card);border:0;border-radius:8px;font-family:Overp
 .hist .r{padding:12px 0}
 .note{line-height:1.45}
 
+/* workouts: blue service-sign panel on the ride screen */
+.wkp{display:none;background:var(--svc);color:#fff;border-radius:12px;padding:10px 14px 8px;margin-bottom:8px;box-shadow:inset 0 0 0 4px var(--svc),inset 0 0 0 6px #fff}
+.wkp.on{display:block}
+.wkh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:600;opacity:.95}.wkh b{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkh span{white-space:nowrap}
+.wkm{display:flex;align-items:center;gap:14px;margin:2px 0 4px}
+.wkt{font-size:clamp(44px,15vw,64px);font-weight:900;letter-spacing:-.01em}
+.wkz{flex:1;border-left:6px solid var(--zc);padding-left:10px;font-size:12px;font-weight:600;display:flex;flex-direction:column}
+.wkz b{font-size:clamp(22px,7vw,30px);font-weight:800;line-height:1.1}
+.wkc.low{color:#9fd3ff}.wkc.high{color:#ffd0d0}
+.wkprof{display:block;width:100%;height:30px;color:#fff}
+.wkdone{font-size:16px;font-weight:700;padding:6px 0}
+#v-wk{padding:0 2px 24px}
+#v-wk h2{font-size:28px;font-weight:900;margin:8px 0 4px}
+.wkcat{font-size:20px;font-weight:800;margin:22px 0 4px;padding-top:14px;border-top:2px dashed var(--lane)}
+.wkrow{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.wkrow.sel .wki b{color:var(--acc)}
+.wki{flex:1}.wki b{display:block;font-size:17px;font-weight:800}.wki span{display:block;font-size:13px;color:var(--dim);line-height:1.4;margin:2px 0 6px}
+.wki .wkprof{height:22px;color:var(--ink)}
+.wkrow button{flex:none;min-height:44px;font-size:15px}
+.wksel{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--svc);color:#fff;border-radius:10px;padding:8px 8px 8px 14px;margin:6px 0}
+.wksel button{min-height:40px;background:transparent;border:2px solid #fff;color:#fff}
+.crec{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--card)}
+.crec span{font-size:13px;color:var(--dim);font-weight:700;display:block}.crec b{display:block;font-size:24px;font-weight:900;line-height:1.1;margin-top:2px}.crec em{font-style:normal;font-size:14px;color:var(--dim);font-weight:600}
+.crec .wkprof{height:26px;margin:8px 0;color:var(--ink)}
+.crec p{margin:6px 0 0;font-size:15px;line-height:1.45}
+.crec .mbtns{flex-wrap:wrap}.crec .mbtns button{flex:1 1 45%}
 </style>
 </head>
 <body>
@@ -317,6 +344,7 @@ input,select{background:var(--card);border:0;border-radius:8px;font-family:Overp
 <section class="view on" id="v-ride">
   <div class="navban" id="navRide"></div>
   <div class="climb" id="climbRide"></div>
+  <div class="wkp" id="wkRide"></div>
   <div class="pages" id="pages">
     <div class="page p1">
       <div class="f w big"><div class="l"><span>Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small class="uSpd">mph</small></div></div></div>
@@ -388,6 +416,21 @@ input,select{background:var(--card);border:0;border-radius:8px;font-family:Overp
   </div>
 </section>
 
+<section class="view" id="v-wk">
+  <h2>Workouts</h2>
+  <div id="wkSel"></div>
+  <h3 class="wkcat">Coach</h3>
+  <div class="coach">
+    <label class="row">Time today<select id="cTime"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours +</option></select></label>
+    <label class="row">How you feel<select id="cFeel"><option value="fresh">Fresh</option><option value="normal" selected>Normal</option><option value="tired">Tired or sore</option></select></label>
+    <label class="row">Goal<select id="cGoal"><option value="base">Build endurance</option><option value="faster">Get faster</option><option value="climb">Climb better</option><option value="recover">Recover</option></select></label>
+    <div class="mbtns"><button class="go" id="coachGo">Pick today's workout</button></div>
+    <div id="coachOut"></div>
+    <p class="note" style="margin:10px 0 0">The coach follows standard training rules and your last 7 days of Spoke rides: no back-to-back hard days, easy after a hard block, intervals when you're rested. Targets use your max heart rate from Settings.</p>
+  </div>
+  <div id="wkList"></div>
+</section>
+
 <section class="view" id="v-sensors">
   <h2>Sensors</h2>
   <div class="card sens"><div class="meta"><b>Heart rate</b><span id="nHr">Vivoactive, other Garmin watch or chest strap</span></div><div class="val num" id="sHr">--</div><button id="bHr">Pair</button></div>
@@ -455,6 +498,7 @@ input,select{background:var(--card);border:0;border-radius:8px;font-family:Overp
 <nav>
   <button class="on" data-v="ride"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/></svg><span>Ride</span></button>
   <button data-v="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span>Map</span></button>
+  <button data-v="wk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h3l3-9 4 12 3-7h5"/></svg><span>Workouts</span></button>
   <button data-v="sensors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M12 13v7"/></svg><span>Sensors</span></button>
   <button data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Settings</span></button>
 </nav>
@@ -656,6 +700,7 @@ setInterval(()=>{
         R.np30.push(pwNow); if(R.np30.length>30) R.np30.shift();
         if(R.np30.length===30){ const a=R.np30.reduce((x,y)=>x+y,0)/30; R.np4Sum+=a**4; R.np4N++; } }
     }
+    try{ wkTick(moving); }catch{}
     if(live.ele!=null && live.acc!=null && live.acc<30){
       if(R.eleRef==null) R.eleRef=live.ele;
       else if(live.ele-R.eleRef>CAL.eleTh){ R.gain+=live.ele-R.eleRef; R.eleRef=live.ele; }
@@ -1262,7 +1307,7 @@ function setCtrl(){
 $('bStart').onclick=()=>{
   if(locked) return;
   audioOn(); voiceOn(); try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch{}
-  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); liveTrail=[]; if(LIVE.on){ LIVE.lastSent=0; livePost(); } }
+  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); liveTrail=[]; if(LIVE.on){ LIVE.lastSent=0; livePost(); } if(WKSEL) wkBegin(); }
   else if(state==='rec'){ state='paused'; toast('Paused'); }
   else { state='rec'; toast('Resumed'); }
   setCtrl();
@@ -1275,10 +1320,11 @@ $('bLap').onclick=()=>{
   $('lbT').textContent = `Lap ${n} done`;
   $('lbG').innerHTML = [['Time',fmtL(lap.moving)],['Avg W',lap.pw ?? '--'],['Avg HR',lap.hr ?? '--'],[imp()?'mph':'km/h',kmhTo(lap.spd).toFixed(1)]]
     .map(([k,v])=>`<div>${k}<b>${v}</b></div>`).join('');
+  if(lapSilent){ lapSilent=false; return; }
   $('lapban').classList.add('on'); clearTimeout(lapBanT); lapBanT=setTimeout(()=>$('lapban').classList.remove('on'),6000);
   if(navigator.vibrate) navigator.vibrate([60,40,60]);
 };
-let lapBanT=null;
+let lapBanT=null, lapSilent=false;
 $('lapban').onclick=()=>$('lapban').classList.remove('on');
 let endArmed=false;
 $('bEnd').onclick=()=>{
@@ -1295,6 +1341,7 @@ async function finishRide(){
     np: R.np4N?Math.round((R.np4Sum/R.np4N)**0.25):null, kj:Math.round(R.kj), laps:R.laps.length,
     distRaw:R.distRaw||0, rawGps:R.rawGps||0, rawWheel:R.rawWheel||0,
     cal:{kGps:CAL.kGps, kWheel:CAL.kWheel, eleTh:CAL.eleTh, apScale:CAL.apScale}, ap:S.ap,
+    wk: WS ? {id:WS.w.id, name:WS.w.name, hard:WS.w.hard, done:WS.done, comp: WS.tot ? Math.round(WS.inT/WS.tot*100) : null} : null,
     route: route ? route.name : null, backed:false, trackBacked:false, hasTrack:R.pts.length>0, maxHr:R.maxHr||null};
   if(LIVE.on) livePost({end:1});
   const rides = LS.get('rc_rides',[]); rides.unshift(sum); LS.set('rc_rides', rides.slice(0,300));
@@ -1303,6 +1350,7 @@ async function finishRide(){
   for(const old of rides.slice(150)) if(old.hasTrack){ dropTrack(old.id); old.hasTrack=false; }
   try{localStorage.removeItem('rc_active');}catch{} IDB.del('active').catch(()=>{});
   const id=R.start, short=R.moving<120;
+  if(WS){ WS=null; WKSEL=null; LS.set('rc_wk_sel', null); renderWk(); wkPanel(); }
   R=null; state='idle'; keepAwake(false); setLock(false); setCtrl(); renderHist(); renderLaps(); render();
   backupPending();
   if(short) toast('Ride saved'); else openSummary(id);
@@ -1334,7 +1382,7 @@ function openSummary(id){
   const dU=imp()?'mi':'km', sU=imp()?'mph':'km/h', eU=imp()?'ft':'m';
   openModal(`<h3>Ride saved</h3>
     <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Moving<b>${fmtT(r.moving)}</b></div><div>Avg speed<b>${kmhTo(r.avgSpd).toFixed(1)}</b></div>
-      <div>Avg HR<b>${r.avgHr ?? '--'}</b></div><div>Max HR<b>${r.maxHr ?? '--'}</b></div><div>Climb<b>${Math.round(mTo(r.gain))} ${eU}</b></div></div>
+      <div>Avg HR<b>${r.avgHr ?? '--'}</b></div>${r.wk?`<div style="grid-column:1/-1">${r.wk.name}<b>${r.wk.comp!=null?r.wk.comp+'% in target':(r.wk.done?'Completed':'Partly done')}</b></div>`:''}<div>Max HR<b>${r.maxHr ?? '--'}</b></div><div>Climb<b>${Math.round(mTo(r.gain))} ${eU}</b></div></div>
     <p class="note" style="margin:6px 0 0">Saved on this phone. Save GPX keeps a copy in Files (or send it to Strava if your watch didn't record this ride).</p>
     <div class="mbtns col"><button class="go" id="sGpx">Save GPX</button><button id="sCf">Compare with Garmin (tunes Spoke)</button><button id="sDone">Done</button></div>`);
   $('sGpx').onclick=()=>exportGpx(id); $('sCf').onclick=()=>openConfirm(id); $('sDone').onclick=closeModal;
@@ -1511,6 +1559,140 @@ ${trk}
   const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name; document.body.appendChild(a); a.click(); a.remove();
   toast('GPX saved. Upload it to Strava or Garmin Connect.');
 }
+
+/* ---------- workouts ---------- */
+const WK_SCALE = Math.max(0.005, Math.min(1, +new URLSearchParams(location.search).get('wkscale') || 1)); // test hook: compress time
+const HRZ = {1:[0.50,0.60], 2:[0.60,0.70], 3:[0.70,0.80], 4:[0.80,0.90], 5:[0.90,1.00]};
+const PWZ = {1:[0.40,0.55], 2:[0.56,0.75], 3:[0.76,0.90], 4:[0.91,1.05], 5:[1.06,1.20], 6:[1.21,1.50]};
+const ZC = {1:'#8a94a3', 2:'#3b8cff', 3:'#19c37d', 4:'#ffb020', 5:'#ff4d4f', 6:'#c04dff'};
+const st = (n, min, z, p, cue) => ({n, s:Math.round(min*60), z, p, cue});
+const WU = (m=10) => [st('Warm up', m, 2, 2)], CD = (m=10) => [st('Cool down', m, 1, 1)];
+const reps = (k, on, off) => { const a=[]; for(let i=1;i<=k;i++){ a.push({...on, n:`${on.n} ${i} of ${k}`}); if(off && i<k) a.push({...off}); } return a; };
+const WORKOUTS = [
+  {id:'rec30', name:'Recovery spin', cat:'Recover', hard:0, desc:'Easy spinning to flush the legs. Keep it truly easy.', steps:[st('Easy spin', 30, 1, 1)]},
+  {id:'z2-45', name:'Zone 2, 45 min', cat:'Endurance', hard:0, desc:'Steady aerobic base. You should be able to talk in full sentences.', steps:[...WU(5), st('Zone 2', 35, 2, 2), ...CD(5)]},
+  {id:'z2-60', name:'Zone 2, 60 min', cat:'Endurance', hard:0, desc:'The bread and butter of fitness: an hour of steady aerobic riding.', steps:[...WU(10), st('Zone 2', 45, 2, 2), ...CD(5)]},
+  {id:'z2-90', name:'Zone 2, 90 min', cat:'Endurance', hard:0, desc:'Longer aerobic ride. Eat and drink every 20 minutes.', steps:[...WU(10), st('Zone 2', 75, 2, 2), ...CD(5)]},
+  {id:'z2-120', name:'Zone 2, 2 hours', cat:'Endurance', hard:0, desc:'Long base ride. Stay disciplined on the hills: zone 2, not zone 4.', steps:[...WU(10), st('Zone 2', 100, 2, 2), ...CD(10)]},
+  {id:'tempo', name:'Tempo 3 × 10', cat:'Endurance', hard:1, desc:'Comfortably hard. Builds the engine for long efforts without wrecking you.', steps:[...WU(), ...reps(3, st('Tempo', 10, 3, 3), st('Easy', 5, 2, 2)), ...CD()]},
+  {id:'ss', name:'Sweet spot 2 × 20', cat:'Faster', hard:2, desc:'Just under threshold. Big fitness return for the time.', steps:[...WU(), ...reps(2, st('Sweet spot', 20, 4, 4), st('Easy', 5, 2, 2)), ...CD()]},
+  {id:'thr', name:'Threshold 4 × 8', cat:'Faster', hard:2, desc:'Hard, controlled efforts at the edge of what you can hold for an hour.', steps:[...WU(), ...reps(4, st('Threshold', 8, 4, 4), st('Recover', 4, 2, 1)), ...CD()]},
+  {id:'vo2', name:'VO2 max 5 × 3', cat:'Faster', hard:3, desc:'Very hard 3-minute efforts that raise your ceiling. Breathing hard by the end of each.', steps:[...WU(15), ...reps(5, st('Interval', 3, 5, 5), st('Recover', 3, 1, 1)), ...CD()]},
+  {id:'3030', name:'30/30s, 2 sets of 8', cat:'Faster', hard:3, desc:'30 seconds hard, 30 easy. Short, sharp and time-efficient. Judge it by feel: HR lags behind.', steps:[...WU(), ...reps(8, st('Hard', 0.5, 5, 6, 'feel'), st('Easy', 0.5, 1, 1, 'feel')), st('Set break', 5, 1, 1), ...reps(8, st('Hard', 0.5, 5, 6, 'feel'), st('Easy', 0.5, 1, 1, 'feel')), ...CD()]},
+  {id:'hills', name:'Hill repeats 6 × 2', cat:'Climbing', hard:3, desc:'Find a hill of 2 minutes or more. Ride up hard, roll back down to recover.', steps:[...WU(15), ...reps(6, st('Climb', 2, 5, 5), st('Roll down', 3, 1, 1)), ...CD()]},
+  {id:'ou', name:'Over-unders 3 × 9', cat:'Climbing', hard:3, desc:'2 min just under threshold, 1 min surge above, repeated. Teaches you to recover while working.', steps:[...WU(), ...reps(3, {n:'Block', s:0, z:4}, st('Easy', 5, 2, 2)).flatMap(x=> x.n.startsWith('Block') ? [st('Under '+x.n.slice(6), 2, 4, 4), st('Over', 1, 5, 5), st('Under', 2, 4, 4), st('Over', 1, 5, 5), st('Under', 2, 4, 4), st('Over', 1, 5, 5)] : [x]), ...CD()]},
+  {id:'sprint', name:'Sprints 8 × 15 s', cat:'Faster', hard:2, desc:'All-out 15-second sprints with full recovery. Seated for the first half, standing for the rest.', steps:[...WU(15), ...reps(8, st('Sprint', 0.25, 5, 6, 'feel'), st('Recover', 4.75, 1, 1)), ...CD()]},
+];
+WORKOUTS.forEach(w=>{ w.steps.forEach(s=>{ s.s=Math.max(3, Math.round(s.s*WK_SCALE)); }); w.mins=Math.round(w.steps.reduce((a,s)=>a+s.s,0)/60/WK_SCALE); });
+const wkById = id => WORKOUTS.find(w=>w.id===id);
+const zoneRange = s => { const z=HRZ[Math.min(5,s.z)]; return [Math.round(z[0]*S.maxhr), Math.round(z[1]*S.maxhr)]; };
+const pwRange = s => { const z=PWZ[s.p||s.z]; return [Math.round(z[0]*S.ftp), Math.round(z[1]*S.ftp)]; };
+const mmss = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const durWords = s => s>=60 ? (s%60 ? `${Math.floor(s/60)} minutes ${s%60} seconds` : `${s/60} minute${s===60?'':'s'}`) : `${s} seconds`;
+let WKSEL = LS.get('rc_wk_sel', null); if(WKSEL && !wkById(WKSEL)) WKSEL=null;
+let WS = null;   // running workout state
+function wkProfile(w, at){
+  const W=300, H=36, T=w.steps.reduce((a,s)=>a+s.s,0); let x=0, out='';
+  for(const s of w.steps){ const ww=s.s/T*W, h=6+(s.z-1)/4*(H-8); out+=`<rect x="${x.toFixed(2)}" y="${(H-h).toFixed(1)}" width="${Math.max(.6,ww-.4).toFixed(2)}" height="${h.toFixed(1)}" fill="${ZC[s.z]}"/>`; x+=ww; }
+  if(at!=null) out+=`<rect x="${(at/T*W).toFixed(1)}" y="0" width="2.5" height="${H}" fill="currentColor"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="wkprof" aria-hidden="true">${out}</svg>`;
+}
+function wkSelect(id){
+  WKSEL=id; LS.set('rc_wk_sel', id); renderWk(); wkPanel();
+  if(id){ const w=wkById(id); toast(state==='idle' ? `${w.name} ready. Tap Start to begin` : `${w.name} starts now`); if(state!=='idle') wkBegin(); }
+}
+function wkBegin(){ const w=wkById(WKSEL); if(!w) return; WS={w, i:0, t:0, inT:0, tot:0, lastNag:0, done:false}; say(`Workout: ${w.name}. ${w.steps[0].n}, ${durWords(w.steps[0].s)}.`); wkPanel(); }
+function wkTick(moving){
+  if(!WS || WS.done || state!=='rec') return;
+  const w=WS.w, s=w.steps[WS.i];
+  if(moving) WS.t++;
+  const left=s.s-WS.t;
+  if(left===10 && w.steps[WS.i+1]){ const n=w.steps[WS.i+1]; say(`In 10 seconds: ${n.n}, ${durWords(n.s)}${n.cue==='feel'?'':', zone '+n.z}.`); }
+  if(left>0 && left<=3) beep(1, 660);
+  // target tracking (skip short steps and the first 45 s while heart rate catches up)
+  const pw = live.lastPwT && fresh(live.lastPwT,5000) ? Math.round(live.pwBuf.reduce((a,b)=>a+b,0)/Math.max(1,live.pwBuf.length)) : null;
+  if(moving && s.cue!=='feel' && s.s>=60 && WS.t>45){
+    let st2=null;
+    if(pw!=null){ const [lo,hi]=pwRange(s); st2 = pw<lo*0.95?'low':pw>hi*1.05?'high':'ok'; }
+    else if(live.hr){ const [lo,hi]=zoneRange(s); st2 = live.hr<lo-3?'low':live.hr>hi+3?'high':'ok'; }
+    if(st2){ WS.tot++; if(st2==='ok') WS.inT++;
+      if(st2!=='ok' && s.z<=2 && st2==='high' || st2!=='ok' && s.z>=3){
+        if(Date.now()-WS.lastNag>60000 && WS.t>75){ WS.lastNag=Date.now(); say(st2==='low' ? 'Pick it up a little' : 'Ease off a little'); } } }
+    WS.state=st2;
+  } else WS.state=null;
+  if(left<=0){
+    WS.i++; WS.t=0;
+    try{ if(R){ lapSilent=true; $('bLap').click(); } }catch{}
+    if(WS.i>=w.steps.length){ WS.done=true; beep(3,1318); say(`Workout complete${WS.tot?`. ${Math.round(WS.inT/WS.tot*100)} percent in target`:''}. Nice work. Ride easy.`); }
+    else { const n=w.steps[WS.i]; beep(2,1046); buzz([150,80,150]); say(`${n.n}. ${durWords(n.s)}${n.cue==='feel'?'':', zone '+n.z}.`); }
+  }
+  wkPanel();
+}
+function wkPanel(){
+  const el=$('wkRide'); if(!el) return;
+  if(!WKSEL){ el.classList.remove('on'); el.innerHTML=''; return; }
+  const w=wkById(WKSEL);
+  if(!WS){ el.classList.add('on'); el.innerHTML=`<div class="wkh"><b>${w.name}</b><span>${w.mins} min, starts with your ride</span></div>${wkProfile(w,null)}`; return; }
+  if(WS.done){ el.classList.add('on'); el.innerHTML=`<div class="wkh"><b>Workout complete</b><span>${WS.tot?Math.round(WS.inT/WS.tot*100)+'% in target':''}</span></div><div class="wkdone">Ride easy. End the ride when you're home.</div>`; return; }
+  const s=w.steps[WS.i], n=w.steps[WS.i+1], el2=w.steps.slice(0,WS.i).reduce((a,x)=>a+x.s,0)+WS.t;
+  const usePw = live.lastPwT && fresh(live.lastPwT,5000);
+  const [lo,hi] = usePw ? pwRange(s) : zoneRange(s);
+  const cur = usePw ? Math.round(live.pwBuf.reduce((a,b)=>a+b,0)/Math.max(1,live.pwBuf.length)) : live.hr;
+  const tgt = s.cue==='feel' ? (s.z>=5?'All out':'Easy') : `${lo}–${hi} ${usePw?'W':'bpm'}`;
+  const arrow = WS.state==='low' ? '▲' : WS.state==='high' ? '▼' : '';
+  el.classList.add('on');
+  el.innerHTML=`<div class="wkh"><b>${s.n}</b><span>${n?`Next: ${n.n} ${mmss(n.s)}`:'Last step'}</span></div>
+    <div class="wkm"><div class="num wkt">${mmss(s.s-WS.t)}</div>
+      <div class="wkz" style="--zc:${ZC[s.z]}"><span>Zone ${s.z} target</span><b class="num">${tgt}</b><span class="wkc ${WS.state||''}">${cur!=null&&s.cue!=='feel'?`Now ${cur} ${arrow}`:''}</span></div></div>
+    ${wkProfile(w, el2)}`;
+}
+function renderWk(){
+  const box=$('wkList'); if(!box) return;
+  const cats=['Recover','Endurance','Faster','Climbing'];
+  box.innerHTML = cats.map(c=>`<h3 class="wkcat">${c}</h3>`+WORKOUTS.filter(w=>w.cat===c).map(w=>`
+    <div class="wkrow${WKSEL===w.id?' sel':''}"><div class="wki"><b>${w.name}</b><span>${w.mins} min. ${w.desc}</span>${wkProfile(w,null)}</div>
+    <button data-wk="${w.id}" class="${WKSEL===w.id?'':'go'}">${WKSEL===w.id?'Selected':'Ride this'}</button></div>`).join('')).join('');
+  const sel=wkById(WKSEL);
+  $('wkSel').innerHTML = sel ? `<div class="wksel"><span>Today: <b>${sel.name}</b></span><button id="wkClear">Clear</button></div>` : '';
+  if(sel) $('wkClear').onclick=()=>{ WS=null; wkSelect(null); toast('Workout cleared'); };
+}
+$('wkList').addEventListener('click', e=>{ const b=e.target.closest('button[data-wk]'); if(b) wkSelect(b.dataset.wk); });
+
+/* ---------- coach (rule-based: reads your recent rides) ---------- */
+function coachPick(time, feel, goal){
+  const rides=LS.get('rc_rides',[]), now=Date.now(), day=86400000;
+  const recent=rides.filter(r=>now-r.id<7*day);
+  const hardOf = r => (r.wk && r.wk.hard>=2) || (r.avgHr && r.avgHr>=0.8*S.maxhr);
+  const hard=recent.filter(hardOf);
+  const daysSinceHard = hard.length ? (now-hard[0].id)/day : 99;
+  const hard4 = hard.filter(r=>now-r.id<4*day).length;
+  const weekH = recent.reduce((a,r)=>a+r.moving/3600,0);
+  const lastHardWk = hard.find(r=>r.wk) ? hard.find(r=>r.wk).wk.id : null;
+  const fit = ids => ids.map(wkById).filter(w=>w && w.mins<=time+5).sort((a,b)=>b.mins-a.mins)[0] || wkById(ids[ids.length-1]);
+  const z2 = () => fit(['z2-120','z2-90','z2-60','z2-45']);
+  const why=[]; let pick, alt;
+  if(recent.length) why.push(`Last 7 days: ${recent.length} ride${recent.length>1?'s':''}, ${weekH.toFixed(1)} h${hard.length?`, ${hard.length} hard`:''}.`);
+  else why.push('No rides in Spoke from the last 7 days, so this is based on what you told me.');
+  if(feel==='tired' || goal==='recover'){ pick = time<=40 ? wkById('rec30') : wkById('rec30'); alt=fit(['z2-60','z2-45']); why.push(feel==='tired'?'You feel tired, so today is about recovery. Fitness is built when you absorb training, not only when you do it.':'You asked for recovery.'); }
+  else if(daysSinceHard<1.2){ pick=time<=35?wkById('rec30'):z2(); alt=wkById('rec30'); why.push(`You rode hard ${daysSinceHard<0.6?'today':'yesterday'}. Back-to-back hard days blunt both sessions, so today stays aerobic.`); }
+  else if(hard4>=2){ pick=z2(); alt=wkById('tempo'); why.push(`${hard4} hard rides in the last 4 days. One easy aerobic ride now sets up a good hard day next.`); }
+  else if(goal==='base'){ pick = feel==='fresh' && time>=60 ? (time>=85?wkById('ss'):wkById('tempo')) : z2(); alt=z2()===pick?wkById('tempo'):z2(); why.push(feel==='fresh'&&time>=60?'You feel fresh with time to spare: a steady harder block on top of aerobic riding builds base fastest.':'Base comes from lots of steady zone 2. Keep it conversational.'); }
+  else if(goal==='faster'){
+    if(time<45){ pick=wkById('3030'); alt=wkById('sprint'); why.push('Short on time: 30/30s give the most speed work per minute.'); }
+    else if(lastHardWk==='vo2' || lastHardWk==='3030'){ pick=wkById(time>=70?'ss':'thr'); alt=wkById('vo2'); why.push('Your last hard workout was short intervals, so today switches to longer threshold work.'); }
+    else { pick=wkById('vo2'); alt=wkById(time>=70?'ss':'thr'); why.push(`${daysSinceHard>=99?'No recent hard rides':'Rested since your last hard day'}: a good day for VO2 intervals to raise your ceiling.`); } }
+  else { pick=wkById(time>=60?'hills':'ou'); alt=wkById(time>=60?'ou':'thr'); why.push('For climbing: repeated hard efforts at climbing intensity. Use a real hill if you have one nearby.'); }
+  if(pick.mins>time+10) why.push(`It runs ${pick.mins} min, a bit over your ${time}; cut the cool down short if needed.`);
+  if(S.maxhr===185) why.push('Your zones use the default max heart rate (185). Set your real max in Settings for accurate targets.');
+  return {pick, alt, why};
+}
+$('coachGo').onclick=()=>{
+  const r=coachPick(+$('cTime').value, $('cFeel').value, $('cGoal').value);
+  $('coachOut').innerHTML=`<div class="crec"><span>Coach's pick</span><b>${r.pick.name}</b><em>${r.pick.mins} min</em>${wkProfile(r.pick,null)}
+    <p>${r.why.join(' ')}</p>
+    <div class="mbtns"><button class="go" data-wk="${r.pick.id}">Ride this</button>${r.alt&&r.alt.id!==r.pick.id?`<button data-wk="${r.alt.id}">Or: ${r.alt.name}</button>`:''}</div></div>`;
+};
+$('coachOut').addEventListener('click', e=>{ const b=e.target.closest('button[data-wk]'); if(b) wkSelect(b.dataset.wk); });
 
 /* ---------- live tracking (end-to-end encrypted, relayed by ntfy.sh) ---------- */
 const LIVE = Object.assign({on:0, name:'', topic:'', key:'', lastSent:0}, LS.get('rc_live',{}));
@@ -1716,7 +1898,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg(); renderInstall();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg(); renderInstall(); renderWk(); wkPanel();
 }
 </script>
 </body>
