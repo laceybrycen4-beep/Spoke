@@ -41,7 +41,7 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;padd
 .pages{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;gap:8px}
 .pages::-webkit-scrollbar{display:none}
 .page{flex:0 0 100%;height:100%;scroll-snap-align:start;display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
-.p1{grid-template-rows:1.6fr 1fr 1fr .75fr}
+.p1{grid-template-rows:1.45fr 1.1fr 1fr 1fr}
 .p2{grid-template-rows:1.3fr 1fr 1fr minmax(0,1.2fr)}
 .p3{grid-template-rows:repeat(5,1fr)}
 .dots{display:flex;justify-content:center;gap:8px;padding:8px 0 2px}
@@ -98,7 +98,7 @@ input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);b
 .mapstrip{position:absolute;left:8px;right:8px;bottom:34px;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg);border-radius:14px;padding:8px 4px;box-shadow:0 4px 18px rgba(0,0,0,.35);text-align:center}
 .mapstrip div{font-size:12px;color:var(--dim);font-weight:600}.mapstrip b{display:block;color:var(--ink);font:700 clamp(26px,8vw,38px)/1 "Barlow Condensed",sans-serif;margin-top:2px;white-space:nowrap}
 .navban{display:none;align-items:center;gap:12px;background:#0b6b3a;color:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
-.navban.on{display:flex}.navban.off{background:#b3261e}.navban.fin{background:#1d4ed8}
+.navban.on{display:flex}.navban.near{background:#12a150;box-shadow:0 0 0 3px #fff inset,0 4px 18px rgba(0,0,0,.3)}.navban.near .nd{font-size:clamp(40px,13vw,62px)}.navban.off{background:#b3261e}.navban.fin{background:#1d4ed8}
 .navban svg{width:54px;height:54px;flex:none}
 .navban .nx{flex:1;min-width:0}
 .navban .nd{font:700 clamp(30px,10vw,46px)/1 "Barlow Condensed",sans-serif;white-space:nowrap}
@@ -141,6 +141,9 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 .cf .num{font-size:22px;text-align:right}.cf input{width:110px}
 .mbtns{display:flex;gap:8px;margin-top:14px}.mbtns button{flex:1}
 .tn{margin:8px 0;font-size:15px;line-height:1.35}
+.sumg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 4px}
+.sumg div{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--dim);font-weight:600}.sumg b{display:block;color:var(--ink);font:700 26px/1.05 "Barlow Condensed",sans-serif;margin-top:2px;white-space:nowrap}
+.mbtns.col{flex-direction:column}
 .calg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .calg div{background:var(--bg);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--dim);font-weight:600}.calg b{display:block;color:var(--ink);font-size:26px;margin-top:2px}
 .calt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 6px;font-size:14px;text-align:right}
@@ -173,11 +176,11 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
   <div class="pages" id="pages">
     <div class="page p1">
       <div class="f w big"><div class="l"><span>Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small class="uSpd">mph</small></div></div></div>
-      <div class="f"><div class="l"><span>Heart rate</span><span class="zone" id="hrZ"></span></div><div class="vb"><div class="v num"><span id="hr">--</span></div></div><div class="bar" id="hrBar"></div></div>
-      <div class="f"><div class="l"><span>Power 3s</span><span class="zone" id="pwZ"></span></div><div class="vb"><div class="v num"><span id="pw">--</span></div></div><div class="bar" id="pwBar"></div></div>
-      <div class="f"><div class="l"><span>Cadence</span></div><div class="vb"><div class="v num"><span id="cad">--</span></div></div></div>
+      <div class="f w mid"><div class="l"><span>Heart rate</span><span class="zone" id="hrZ"></span></div><div class="vb"><div class="v num"><span id="hr">--</span><small>bpm</small></div></div><div class="bar" id="hrBar"></div></div>
       <div class="f"><div class="l"><span>Distance</span></div><div class="vb"><div class="v num"><span id="dist">0.00</span><small class="uDist">mi</small></div></div></div>
-      <div class="f w time"><div class="l"><span>Moving time</span></div><div class="vb"><div class="v num tm" id="mov">0:00:00</div></div></div>
+      <div class="f"><div class="l"><span id="aL">Avg speed</span><span class="zone" id="pwZ"></span></div><div class="vb"><div class="v num"><span id="aV">0.0</span><small id="aU">mph</small></div></div><div class="bar" id="pwBar"></div></div>
+      <div class="f"><div class="l"><span>Moving time</span></div><div class="vb"><div class="v num tm" id="mov">0:00:00</div></div></div>
+      <div class="f"><div class="l"><span id="bL">Climb</span></div><div class="vb"><div class="v num"><span id="bV">0</span><small id="bU">ft</small></div></div></div>
     </div>
     <div class="page p2">
       <div class="f w mid"><div class="l"><span id="lapN">Lap 1</span><span>Lap time</span></div><div class="vb"><div class="v num tm" id="lapT">0:00</div></div></div>
@@ -228,7 +231,7 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
     <div class="mapstrip">
       <div>Speed<b id="mSpd">0.0</b></div>
       <div>HR<b id="mHr">--</b></div>
-      <div>Power<b id="mPw">--</b></div>
+      <div id="mPwL">Time<b id="mPw">0:00</b></div>
       <div id="mDistL">Distance<b id="mDist">0.0</b></div>
     </div>
   </div>
@@ -252,7 +255,8 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
     <label class="row">Auto-pause below<select id="ap"><option value="0">Off</option><option value="2">2 mph / 3 km/h</option><option value="3">3 mph / 5 km/h</option></select></label>
     <label class="row">Lock screen on start<select id="autolock"><option value="1">On</option><option value="0">Off</option></select></label>
     <label class="row">Map style<select id="mstyle"><option value="auto">Auto (follows Sun)</option><option value="liberty">Streets</option><option value="positron">Light</option><option value="dark">Dark</option></select></label>
-    <label class="row">Turn alert sounds<select id="snd"><option value="1">On</option><option value="0">Off</option></select></label>
+    <label class="row">Voice directions<select id="voice"><option value="1">On</option><option value="0">Off</option></select></label>
+    <label class="row">Turn alert beeps<select id="snd"><option value="1">On</option><option value="0">Off</option></select></label>
     <label class="row">Sunlight mode<select id="sun"><option value="0">Off</option><option value="1">On</option></select></label>
   </div>
   <p class="note">Touch lock: tap the padlock to lock; hold it for about a second to unlock. Swiping between pages and the Lap button still work while locked. 700x25c = 2105 mm, 700x28c = 2136, 700x32c = 2155.</p>
@@ -292,12 +296,16 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 <script>
 {
 const $ = id => document.getElementById(id);
+const IDB = (()=>{ let pr=null;
+  const open=()=> pr || (pr=new Promise((res,rej)=>{ if(!window.indexedDB) return rej(new Error('no idb')); const r=indexedDB.open('spoke',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }));
+  const tx=(mode,fn)=>open().then(db=>new Promise((res,rej)=>{ const t=db.transaction('kv',mode), q=fn(t.objectStore('kv')); t.oncomplete=()=>res(q&&q.result); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error); }));
+  return {get:k=>tx('readonly',st=>st.get(k)), set:(k,v)=>tx('readwrite',st=>st.put(v,k)), del:k=>tx('readwrite',st=>st.delete(k))}; })();
 const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 
 /* ---------- settings ---------- */
-const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1}, LS.get('rc_settings',{}));
+const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1,voice:1}, LS.get('rc_settings',{}));
 const saveS = () => LS.set('rc_settings', S);
-for (const k of ['units','ftp','maxhr','wheel','ap','autolock','sun','mstyle','snd']) {
+for (const k of ['units','ftp','maxhr','wheel','ap','autolock','sun','mstyle','snd','voice']) {
   $(k).value = S[k];
   $(k).addEventListener('change', e => { S[k] = (k==='units'||k==='mstyle') ? e.target.value : +e.target.value; saveS(); applyUnits(); applySun(); if(k==='mstyle'||k==='sun') applyMapStyle(); render(); });
 }
@@ -459,7 +467,7 @@ setInterval(()=>{
       R.distRaw=(R.distRaw||0)+draw; if(sp.src==='Wheel') R.rawWheel=(R.rawWheel||0)+draw; else R.rawGps=(R.rawGps||0)+draw;
       R.moving++; R.dist += dkm; R.lap.moving++; R.lap.dist += dkm;
       R.maxSpd = Math.max(R.maxSpd, sp.v);
-      if(live.hr){ R.hrSum+=live.hr; R.hrN++; R.lap.hrSum+=live.hr; R.lap.hrN++; }
+      if(live.hr){ R.maxHr=Math.max(R.maxHr||0, live.hr); R.hrSum+=live.hr; R.hrN++; R.lap.hrSum+=live.hr; R.lap.hrN++; }
       if(live.pw!=null){ R.pwSum+=pwNow; R.pwN++; R.kj += pwNow/1000; R.lap.pwSum+=pwNow; R.lap.pwN++;
         R.np30.push(pwNow); if(R.np30.length>30) R.np30.shift();
         if(R.np30.length===30){ const a=R.np30.reduce((x,y)=>x+y,0)/30; R.np4Sum+=a**4; R.np4N++; } }
@@ -472,7 +480,7 @@ setInterval(()=>{
     if(live.lat!=null && fresh(live.lastGpsT,5000))
       R.pts.push({t:Date.now(), lat:+live.lat.toFixed(6), lon:+live.lon.toFixed(6), ele:live.ele!=null?+live.ele.toFixed(1):null,
         hr:live.hr, pw:live.pw, cad:live.cad});
-    if(R.elapsed%15===0) LS.set('rc_active', R);
+    if(R.elapsed%15===0){ IDB.set('active', R).catch(()=>LS.set('rc_active', R)); }
     document.body.classList.toggle('paused', !moving);
   }
   $('clock').textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
@@ -487,18 +495,22 @@ function render(sp=curSpeed()){
   $('hr').textContent = live.hr ?? '--';
   const hz = live.hr ? hrZone(live.hr) : 0; $('hrZ').textContent = hz?'Z'+hz:''; setBar($('hrBar'),hz);
   const p3 = live.lastPwT ? Math.round(live.pwBuf.reduce((a,b)=>a+b,0)/Math.max(1,live.pwBuf.length)) : null;
-  $('pw').textContent = p3 ?? '--';
-  const pz = p3 ? pwZone(p3) : 0; $('pwZ').textContent = pz?'Z'+pz:''; setBar($('pwBar'),pz);
-  $('cad').textContent = live.cad ?? '--';
+  const hasPw = !!live.lastPwT && fresh(live.lastPwT,15000), hasCad = !!live.lastCadT && fresh(live.lastCadT,15000);
   $('sHr').textContent = live.hr ?? '--'; $('sPw').textContent = p3 ?? '--';
   $('sCsc').textContent = (live.lastCscT && fresh(live.lastCscT,8000)) ? kmhTo(live.csSpd||0).toFixed(1) : (live.cad ?? '--');
   const alt = live.ele!=null ? Math.round(mTo(live.ele)) : '--';
   $('alt2').textContent = alt;
-  $('mSpd').textContent = kmhTo(sp.v).toFixed(1); $('mHr').textContent = live.hr ?? '--'; $('mPw').textContent = p3 ?? '--';
+  $('mSpd').textContent = kmhTo(sp.v).toFixed(1); $('mHr').textContent = live.hr ?? '--'; 
   const d=(id,on,warn)=>{$(id).className='dot'+(on?' on':warn?' warn':'');};
   d('dGps', fresh(live.lastGpsT,5000) && live.acc<30, fresh(live.lastGpsT,5000));
   d('dHr', fresh(live.lastHrT)); d('dPw', fresh(live.lastPwT,5000)); d('dCsc', fresh(live.lastCscT,8000)||fresh(live.lastCadT,5000));
   const r = R || newRide();
+  if(hasPw){ $('aL').textContent='Power 3s'; $('aV').textContent=p3 ?? '--'; $('aU').textContent='W';
+    const pz = p3 ? pwZone(p3) : 0; $('pwZ').textContent = pz?'Z'+pz:''; setBar($('pwBar'),pz); }
+  else { $('aL').textContent='Avg speed'; $('aV').textContent = r.moving ? kmhTo(r.dist/(r.moving/3600)).toFixed(1) : '0.0'; $('aU').textContent=imp()?'mph':'km/h'; $('pwZ').textContent=''; setBar($('pwBar'),0); }
+  if(hasCad){ $('bL').textContent='Cadence'; $('bV').textContent=live.cad ?? '--'; $('bU').textContent='rpm'; }
+  else { $('bL').textContent='Climb'; $('bV').textContent=Math.round(mTo(r.gain)); $('bU').textContent=imp()?'ft':'m'; }
+  if(hasPw){ $('mPwL').firstChild.textContent='Power'; $('mPw').textContent=p3 ?? '--'; } else { $('mPwL').firstChild.textContent='Time'; $('mPw').textContent=fmtL(r.moving); }
   $('dist').textContent = kmTo(r.dist).toFixed(2);
   $('mov').textContent = fmtT(r.moving); $('ela').textContent = fmtT(r.elapsed);
   $('avgSpd').textContent = r.moving ? kmhTo(r.dist/(r.moving/3600)).toFixed(1) : '0.0';
@@ -547,6 +559,14 @@ function beep(n=1, f=880){
     o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.18); }
 }
 const buzz = pat => { if(navigator.vibrate) navigator.vibrate(pat); };
+let voiceOk=false;
+function voiceOn(){ if(voiceOk || !('speechSynthesis' in window)) return; try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); voiceOk=true; }catch{} }
+function say(t){ if(!S.voice || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=1.05; u.lang='en-US'; speechSynthesis.speak(u); }catch{} }
+function spokenDist(m){
+  if(imp()){ const mi=m/1609.34; if(mi>=0.4) return (Math.round(mi*4)/4===0.5?'half a mile':Math.round(mi*4)/4===0.25?'a quarter mile':(Math.round(mi*10)/10)+' miles');
+    const ft=Math.round(m*3.28084/100)*100; return Math.max(100,ft)+' feet'; }
+  return m>=1000 ? (Math.round(m/100)/10)+' kilometers' : Math.max(50,Math.round(m/50)*50)+' meters';
+}
 
 /* ---------- route parsing ---------- */
 let route = null;
@@ -651,7 +671,7 @@ function renderRouteSheet(){
   $('cueList').innerHTML = route.cues.map(c=>`<div><span>${fmtD(c.d)}</span>${esc(c.text)}</div>`).join('');
 }
 $('rtFile').addEventListener('change', async e=>{
-  const f=e.target.files[0]; e.target.value=''; if(!f) return; audioOn();
+  const f=e.target.files[0]; e.target.value=''; if(!f) return; audioOn(); voiceOn();
   try{ const r=parseRoute(await f.text(), f.name); setRoute(r); toast(`Loaded ${r.name}`); overview(); $('sheet').classList.remove('on'); }
   catch(err){ toast(err.message); }
 });
@@ -684,18 +704,20 @@ function navUpdate(lat, lon){
   if(nav.offN>=3) nav.off=true; else if(b.dist<30) nav.off=false;
   nav.dist=b.dist;
   if(!nav.off || nav.d==null){ nav.i=b.i; nav.d=b.d; }
-  if(nav.off && !wasOff){ beep(3,440); buzz([300,100,300]); nav.lastOffAlert=Date.now(); }
+  if(nav.off && !wasOff){ beep(3,440); buzz([300,100,300]); say('Off route'); nav.lastOffAlert=Date.now(); }
   else if(nav.off && Date.now()-nav.lastOffAlert>20000){ beep(2,440); buzz([300,100,300]); nav.lastOffAlert=Date.now(); }
-  else if(!nav.off && wasOff){ beep(1,1046); toast('Back on route'); }
+  else if(!nav.off && wasOff){ beep(1,1046); say('Back on route'); toast('Back on route'); }
   // next cue + alerts
   const ci = route.cues.findIndex(c=>c.d > nav.d+8);
   nav.cue = ci;
   if(ci>=0 && !nav.off){
     const c=route.cues[ci], to=c.d-nav.d, w=nav.warned[ci]||0;
-    if(to<160 && w<1 && c.kind!=='finish'){ beep(1); buzz(120); nav.warned[ci]=1; }
-    if(to<35 && w<2){ beep(2,1046); buzz([120,80,120]); nav.warned[ci]=2; }
+    const prevD = ci>0 ? route.cues[ci-1].d : 0;
+    if(to<420 && to>200 && w<1 && c.kind!=='finish' && c.d-prevD>600){ say(`In ${spokenDist(to)}, ${c.text}`); nav.warned[ci]=1; }
+    else if(to<140 && w<2 && c.kind!=='finish'){ beep(1); buzz(120); say(`In ${spokenDist(to)}, ${c.text}`); nav.warned[ci]=2; }
+    else if(to<35 && w<3){ beep(2,1046); buzz([120,80,120]); say(c.kind==='finish'?'Arriving at the finish':c.text); nav.warned[ci]=3; }
   }
-  if(route.total-nav.d<30 && !nav.done){ nav.done=true; beep(3,1318); toast('Route complete'); }
+  if(route.total-nav.d<30 && !nav.done){ nav.done=true; beep(3,1318); say('Route complete'); toast('Route complete'); }
   navRender();
 }
 function arrowSvg(kind){
@@ -725,6 +747,7 @@ function navRender(){
   } else {
     const c=route.cues[nav.cue] || route.cues[route.cues.length-1];
     const t=document.createElement('div'); t.textContent=c.text;
+    if(c.d-nav.d<150) cls+=' near';
     html = `${arrowSvg(c.kind)}<div class="nx"><div class="nd">${fmtNd(c.d-nav.d)}</div><div class="nt">${t.innerHTML}</div></div>${rest}`;
   }
   els.forEach(e=>{ e.className=cls; e.innerHTML=html; });
@@ -874,7 +897,7 @@ function setCtrl(){
 }
 $('bStart').onclick=()=>{
   if(locked) return;
-  audioOn();
+  audioOn(); voiceOn(); try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch{}
   if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); }
   else if(state==='rec'){ state='paused'; toast('Paused'); }
   else { state='rec'; toast('Resumed'); }
@@ -900,7 +923,7 @@ $('bEnd').onclick=()=>{
   endArmed=false; $('bEnd').textContent='End';
   finishRide();
 };
-function finishRide(){
+async function finishRide(){
   if(!R) return;
   const sum = {id:R.start, dist:R.dist, moving:R.moving, elapsed:R.elapsed,
     avgSpd: R.moving? R.dist/(R.moving/3600):0, maxSpd:R.maxSpd, gain:R.gain,
@@ -908,16 +931,27 @@ function finishRide(){
     np: R.np4N?Math.round((R.np4Sum/R.np4N)**0.25):null, kj:Math.round(R.kj), laps:R.laps.length,
     distRaw:R.distRaw||0, rawGps:R.rawGps||0, rawWheel:R.rawWheel||0,
     cal:{kGps:CAL.kGps, kWheel:CAL.kWheel, eleTh:CAL.eleTh, apScale:CAL.apScale}, ap:S.ap,
-    route: route ? route.name : null, backed:false, trackBacked:false};
+    route: route ? route.name : null, backed:false, trackBacked:false, hasTrack:R.pts.length>0, maxHr:R.maxHr||null};
   const rides = LS.get('rc_rides',[]); rides.unshift(sum); LS.set('rc_rides', rides.slice(0,300));
-  LS.set('rc_gpx_'+R.start, R.pts);
-  const keep = rides.slice(0,10).map(r=>'rc_gpx_'+r.id);
-  try{ Object.keys(localStorage).filter(k=>k.startsWith('rc_gpx_') && !keep.includes(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
-  try{localStorage.removeItem('rc_active');}catch{}
+  const ok = await putTrack(R.start, R.pts);
+  if(!ok){ sum.hasTrack=false; LS.set('rc_rides', rides.slice(0,300)); toast('Phone storage is full: track not saved, summary kept'); }
+  for(const old of rides.slice(150)) if(old.hasTrack){ dropTrack(old.id); old.hasTrack=false; }
+  try{localStorage.removeItem('rc_active');}catch{} IDB.del('active').catch(()=>{});
   const id=R.start, short=R.moving<120;
   R=null; state='idle'; keepAwake(false); setLock(false); setCtrl(); renderHist(); renderLaps(); render();
   backupPending();
-  if(short) toast('Ride saved'); else openConfirm(id);
+  if(short) toast('Ride saved'); else openSummary(id);
+}
+
+/* ---------- track storage (IndexedDB, falls back to localStorage) ---------- */
+async function putTrack(id, pts){ try{ await IDB.set('trk_'+id, pts); return true; }catch{ try{ localStorage.setItem('rc_gpx_'+id, JSON.stringify(pts)); return true; }catch{ return false; } } }
+async function getTrack(id){ try{ const t=await IDB.get('trk_'+id); if(t) return t; }catch{} return LS.get('rc_gpx_'+id, null); }
+async function dropTrack(id){ try{ await IDB.del('trk_'+id); }catch{} try{ localStorage.removeItem('rc_gpx_'+id); }catch{} }
+async function migrateTracks(){
+  const rides=LS.get('rc_rides',[]); let ch=false;
+  for(const r of rides){ const k='rc_gpx_'+r.id, v=LS.get(k,null);
+    if(v){ try{ await IDB.set('trk_'+r.id, v); localStorage.removeItem(k); }catch{} r.hasTrack=true; ch=true; } }
+  if(ch){ LS.set('rc_rides', rides); renderHist(); }
 }
 
 /* ---------- calibration (learns from Garmin numbers you confirm) ---------- */
@@ -930,6 +964,16 @@ function openModal(html){ $('mbox').innerHTML=html; $('modal').classList.add('on
 function closeModal(){ $('modal').classList.remove('on'); }
 $('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
 
+function openSummary(id){
+  const r=LS.get('rc_rides',[]).find(x=>x.id===id); if(!r) return;
+  const dU=imp()?'mi':'km', sU=imp()?'mph':'km/h', eU=imp()?'ft':'m';
+  openModal(`<h3>Ride saved</h3>
+    <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Moving<b>${fmtT(r.moving)}</b></div><div>Avg speed<b>${kmhTo(r.avgSpd).toFixed(1)}</b></div>
+      <div>Avg HR<b>${r.avgHr ?? '--'}</b></div><div>Max HR<b>${r.maxHr ?? '--'}</b></div><div>Climb<b>${Math.round(mTo(r.gain))} ${eU}</b></div></div>
+    <p class="note" style="margin:6px 0 0">Saved on this phone. Save GPX keeps a copy in Files (or send it to Strava if your watch didn't record this ride).</p>
+    <div class="mbtns col"><button class="go" id="sGpx">Save GPX</button><button id="sCf">Compare with Garmin (tunes Spoke)</button><button id="sDone">Done</button></div>`);
+  $('sGpx').onclick=()=>exportGpx(id); $('sCf').onclick=()=>openConfirm(id); $('sDone').onclick=closeModal;
+}
 function openConfirm(id){
   const r=LS.get('rc_rides',[]).find(x=>x.id===id); if(!r) return;
   const dU=imp()?'mi':'km', eU=imp()?'ft':'m';
@@ -952,7 +996,7 @@ function openConfirm(id){
   };
 }
 
-function applyGarmin(id, g){
+async function applyGarmin(id, g){
   const rides=LS.get('rc_rides',[]), r=rides.find(x=>x.id===id); if(!r) return;
   const res={}, notes=[], before={...CAL}; const a=0.35;
   if(g.dist){ res.distErr=(r.dist-g.dist)/g.dist*100;
@@ -960,7 +1004,7 @@ function applyGarmin(id, g){
       if(wheelMain){ const kNew=(g.dist-(r.rawGps||0)*CAL.kGps)/r.rawWheel; if(isFinite(kNew)) CAL.kWheel=clamp(CAL.kWheel+(clamp(kNew,.85,1.15)-CAL.kWheel)*a,.85,1.15); }
       else { const kNew=(g.dist-(r.rawWheel||0)*CAL.kWheel)/r.rawGps; if(isFinite(kNew)) CAL.kGps=clamp(CAL.kGps+(clamp(kNew,.85,1.15)-CAL.kGps)*a,.85,1.15); } } }
   if(g.gain!=null){ res.gainErr = g.gain>0 ? (r.gain-g.gain)/g.gain*100 : null; res.gainDiff=r.gain-g.gain;
-    const eles=(LS.get('rc_gpx_'+id,[])||[]).map(p=>p.ele).filter(e=>e!=null);
+    const eles=((await getTrack(id))||[]).map(p=>p.ele).filter(e=>e!=null);
     if(eles.length>60){ let best=CAL.eleTh, bd=Infinity; for(let th=1;th<=12;th+=0.5){ const dd=Math.abs(gainWith(eles,th)-g.gain); if(dd<bd-0.5){bd=dd;best=th;} }
       CAL.eleTh=clamp(CAL.eleTh+(best-CAL.eleTh)*a,1,12); } }
   if(g.mov){ res.movErr=r.moving-g.mov;
@@ -1031,7 +1075,7 @@ async function backupPending(manual){
   try{
     const rides=LS.get('rc_rides',[]);
     for(const r of rides){
-      if(!r.trackBacked){ const pts=LS.get('rc_gpx_'+r.id,null);
+      if(!r.trackBacked){ const pts=await getTrack(r.id);
         if(pts && pts.length){ await putJson(`tracks/${r.id}.json`, {format:'spoke-track-1', id:r.id, cols:['t','lat','lon','ele','hr','pw','cad'], pts:pts.map(p=>[p.t,p.lat,p.lon,p.ele,p.hr,p.pw,p.cad])}, `Track ${new Date(r.id).toISOString()}`); }
         r.trackBacked = !!(pts && pts.length); }
       if(!r.backed){ await putJson(`rides/${r.id}.json`, {format:'spoke-ride-1', start:new Date(r.id).toISOString(), ...r, backed:undefined}, `Ride ${new Date(r.id).toISOString()}`); r.backed=true; n++; }
@@ -1074,7 +1118,7 @@ function renderHist(){
   const rides=LS.get('rc_rides',[]);
   if(!rides.length){ $('hist').innerHTML='<div class="note" style="margin:0">No saved rides yet.</div>'; return; }
   $('hist').innerHTML = rides.map(r=>{
-    const d=new Date(r.id), hasG=LS.get('rc_gpx_'+r.id,null);
+    const d=new Date(r.id), hasG=r.hasTrack;
     return `<div class="r"><div><b>${d.toLocaleDateString([], {month:'short',day:'numeric'})} ${d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</b><br>
       <span class="num" style="font-size:18px">${kmTo(r.dist).toFixed(1)} ${imp()?'mi':'km'} · ${fmtT(r.moving)} · ${kmhTo(r.avgSpd).toFixed(1)} ${imp()?'mph':'km/h'}</span><br>
       <span style="color:var(--dim)">${r.avgPw?r.avgPw+' W avg · ':''}${r.np?r.np+' W NP · ':''}${r.avgHr?r.avgHr+' bpm · ':''}${Math.round(mTo(r.gain))} ${imp()?'ft':'m'}${r.laps?' · '+Number(r.laps)+' laps':''}</span></div>
@@ -1084,7 +1128,7 @@ function renderHist(){
 }
 $('hist').addEventListener('click', e=>{ const d=e.target.dataset||{}; if(d.gpx) exportGpx(+d.gpx); else if(d.cf) openConfirm(+d.cf); });
 async function exportGpx(id){
-  let pts=LS.get('rc_gpx_'+id,[]);
+  let pts=(await getTrack(id))||[];
   if(!pts.length && bkReady()){ try{ const j=await getJson(`tracks/${id}.json`); pts=j.pts.map(a=>({t:a[0],lat:a[1],lon:a[2],ele:a[3],hr:a[4],pw:a[5],cad:a[6]})); }catch(e){ toast(e.message); return; } }
   if(!pts.length){toast('No GPS points in that ride');return;}
   const n = v => Number(v);
@@ -1113,8 +1157,11 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 });
 
 /* ---------- crash recovery ---------- */
-const act = LS.get('rc_active', null);
-if(act && act.start){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); toast('Recovered unfinished ride. Tap Resume or End.'); }
+(async()=>{
+  let act=null; try{ act=await IDB.get('active'); }catch{} if(!act) act=LS.get('rc_active', null);
+  if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
+  migrateTracks();
+})();
 renderHist(); renderLaps(); render(); renderCal(); bkStatus();
 }
 </script>

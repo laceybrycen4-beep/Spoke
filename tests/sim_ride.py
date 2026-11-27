@@ -10,6 +10,8 @@ What it checks (exit code 1 on any failure):
   3. Ending the ride opens Confirm-with-Garmin; entering Garmin numbers updates calibration.
   4. Backup writes rides/, tracks/ and calibration.json to a mocked private GitHub repo.
   5. After calibration, a second ride's distance is closer to the Garmin number than the first.
+  6. Voice navigation: on a loaded GPX route with a right turn, Spoke speaks a "turn right" prompt.
+  7. Ride tracks are stored (IndexedDB) and the ride summary card opens after a ride.
 Prints a JSON summary on the last line for the weekly agent to read.
 """
 import asyncio, base64, json, math, os, sys
@@ -53,6 +55,7 @@ async def main():
                                   geolocation={'latitude': 32.78, 'longitude': -96.80, 'accuracy': 5})
         pg = await ctx.new_page()
         pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.add_init_script("window.__said=[]; if(window.speechSynthesis){ speechSynthesis.speak=u=>window.__said.push(u.text); speechSynthesis.cancel=()=>{}; }")
 
         async def cdn(route):
             u = route.request.url
@@ -92,8 +95,12 @@ async def main():
         err1 = (d1_km - truth_km) / truth_km * 100
         if abs(err1) > 3: fails.append(f'ride 1 distance {d1_km:.3f} km vs truth {truth_km:.3f} km ({err1:+.1f}%)')
 
-        # Garmin confirm
-        if not await pg.is_visible('#gSave'): fails.append('confirm modal did not open after ride')
+        # summary card -> Garmin confirm
+        if not await pg.is_visible('#sGpx'): fails.append('ride summary card did not open after ride')
+        else: await pg.click('#sCf'); await pg.wait_for_timeout(300)
+        if not await pg.is_visible('#gSave'): fails.append('Garmin compare form did not open')
+        ntrk = await pg.evaluate("new Promise(r=>{const q=indexedDB.open('spoke');q.onsuccess=()=>{const t=q.result.transaction('kv').objectStore('kv').getAllKeys();t.onsuccess=()=>r(t.result.filter(k=>String(k).startsWith('trk_')).length)}})")
+        if ntrk < 1: fails.append('ride track was not stored in IndexedDB')
         garmin_km = truth_km * GARMIN_BIAS
         await pg.fill('#gDist', f'{(garmin_km / 1.609344 if mi else garmin_km):.3f}')
         await pg.fill('#gMov', f'0:{SECONDS // 60:02d}:{SECONDS % 60:02d}')
@@ -112,13 +119,28 @@ async def main():
         d2 = await ride(pg, ctx)
         d2_km = d2 * 1.609344 if mi else d2
         e1, e2 = abs(d1_km - garmin_km), abs(d2_km - garmin_km)
+        if await pg.is_visible('#sDone'): await pg.click('#sDone')
+        # voice navigation on a route with a right turn
+        import tempfile
+        lat0, lon0 = 32.79, -96.79
+        route = [(lat0 + 13*i/111320.0, lon0) for i in range(33)]
+        route += [(route[-1][0], lon0 + 13*i/(111320.0*math.cos(math.radians(lat0)))) for i in range(1, 33)]
+        gpx = '<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Turn test</name><trkseg>' + \
+              ''.join(f'<trkpt lat="{x:.6f}" lon="{y:.6f}"></trkpt>' for x, y in route) + '</trkseg></trk></gpx>'
+        gp = os.path.join(tempfile.mkdtemp(), 'turn.gpx'); open(gp, 'w').write(gpx)
+        await pg.set_input_files('#rtFile', gp); await pg.wait_for_timeout(500)
+        await pg.evaluate("window.__said=[]")
+        for la, lo in route[:45]:
+            await ctx.set_geolocation({"latitude": la, "longitude": lo, "accuracy": 5}); await pg.wait_for_timeout(1000)
+        said = await pg.evaluate("window.__said")
+        if not any('turn right' in t.lower() for t in said): fails.append(f'no spoken "turn right" prompt on the route (said: {said})')
         if not e2 < e1: fails.append(f'calibration did not reduce error vs Garmin (ride1 off {e1:.3f} km, ride2 off {e2:.3f} km)')
         if errs: fails.append('runtime errors: ' + '; '.join(errs))
         await b.close()
 
     summary = {'ok': not fails, 'fails': fails, 'truth_km': round(truth_km, 3), 'ride1_km': round(d1_km, 3),
                'ride1_err_pct': round(err1, 2), 'garmin_km': round(garmin_km, 3), 'ride2_km': round(d2_km, 3),
-               'backup_files': sorted(store.keys())}
+               'backup_files': sorted(store.keys()), 'spoken': said}
     print(('PASS' if not fails else 'FAIL') + '\n' + '\n'.join(fails))
     print(json.dumps(summary))
     sys.exit(0 if not fails else 1)
