@@ -24,16 +24,20 @@ SECONDS = 130     # ride length per simulated ride
 GARMIN_BIAS = 0.97  # pretend Garmin measured 3% less than true GPS distance (forces calibration to act)
 
 def path_points(n, lat0=32.78, lon0=-96.80):
-    pts = []
+    # realistic start: 0 -> SPEED at 2.2 m/s^2, then steady
+    pts, d = [], 0.0
     for i in range(n + 1):
-        d = SPEED * i
         pts.append((lat0 + d / 111320.0, lon0))
+        d += min(SPEED, 2.2 * (i + 1))
     return pts
+def path_len(n):
+    return sum(min(SPEED, 2.2 * (i + 1)) for i in range(n))
 
 async def ride(pg, ctx, start_idx=0):
     pts = path_points(SECONDS + 5)
-    await ctx.set_geolocation({'latitude': pts[0][0], 'longitude': pts[0][1], 'accuracy': 5})
-    await pg.wait_for_timeout(1200)
+    for _ in range(4):   # stand at the start like a real ride, so every ride begins the same way
+        await ctx.set_geolocation({'latitude': pts[0][0], 'longitude': pts[0][1], 'accuracy': 5})
+        await pg.wait_for_timeout(1000)
     await pg.click('#bStart')
     for i in range(1, SECONDS + 1):
         await ctx.set_geolocation({'latitude': pts[i][0], 'longitude': pts[i][1], 'accuracy': 5})
@@ -88,7 +92,7 @@ async def main():
         await pg.click('#bkTest'); await pg.wait_for_timeout(800)
         await pg.click('nav button[data-v=ride]')
 
-        truth_km = SPEED * SECONDS / 1000
+        truth_km = path_len(SECONDS) / 1000
         d1 = await ride(pg, ctx)
         mi = await pg.evaluate("document.querySelector('.uDist').textContent") == 'mi'
         d1_km = d1 * 1.609344 if mi else d1

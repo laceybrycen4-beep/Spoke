@@ -9,4 +9,4 @@ Open: https://laceybrycen4-beep.github.io/Spoke/ (iPhone: use the Bluefy browser
 - After each ride, **Confirm with Garmin** tunes distance, climbing and auto-pause to match your watch.
 - Rides back up to a private GitHub repo (`spoke-data`) set in Settings, Backup.
 - A weekly Claude agent compares Spoke with Strava/Garmin and ships tested fixes: see `AGENT.md`.
-- Test: `python3 tests/sim_ride.py`
+- Tests: `python3 tests/sim_ride.py` and `python3 tests/sim_nav.py`

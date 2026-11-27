@@ -107,6 +107,15 @@ input,select{font:16px Barlow,sans-serif;background:var(--bg);color:var(--ink);b
 .navban .nr b{display:block;font:700 22px/1 "Barlow Condensed",sans-serif}
 #navMap{position:absolute;top:8px;left:8px;right:8px;z-index:2}
 #navRide{margin-bottom:8px}
+.climb{display:none;background:var(--card);border-radius:14px;padding:8px 12px 6px;margin-bottom:8px;border-left:6px solid #ff7a00}
+.climb.on{display:block}
+.climb .ch{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--dim);font-weight:600}
+.climb .cn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 4px;font-size:12px;color:var(--dim)}
+.climb .cn b{display:block;color:var(--ink);font-size:clamp(24px,7.5vw,34px);line-height:1.05;white-space:nowrap}
+.climb svg{display:block;width:100%;height:40px;border-radius:6px;background:var(--bg)}
+#climbMap{position:absolute;left:8px;right:130px;bottom:118px;z-index:2;margin:0;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.prof svg{display:block;width:100%;height:70px;background:var(--card);border-radius:10px;margin-top:10px}
+.sheet h4{margin:16px 0 2px;font:700 18px "Barlow Condensed",sans-serif}
 .sheet{position:absolute;left:8px;right:8px;top:8px;z-index:3;background:var(--bg);border-radius:14px;padding:14px;display:none;box-shadow:0 6px 24px rgba(0,0,0,.45);max-height:calc(100% - 16px);overflow-y:auto}
 .sheet.on{display:block}
 .sheet h3{margin:0 0 4px;font:700 22px "Barlow Condensed",sans-serif}
@@ -176,6 +185,7 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 
 <section class="view on" id="v-ride">
   <div class="navban" id="navRide"></div>
+  <div class="climb" id="climbRide"></div>
   <div class="pages" id="pages">
     <div class="page p1">
       <div class="f w big"><div class="l"><span>Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small class="uSpd">mph</small></div></div></div>
@@ -214,9 +224,10 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
     <div id="mapgl"></div>
     <canvas id="mapc"></canvas>
     <div class="navban" id="navMap"></div>
+    <div class="climb" id="climbMap"></div>
     <div class="sheet" id="sheet">
       <h3 id="rtName">No route loaded</h3>
-      <div class="note" id="rtInfo" style="margin:0">Load a GPX or TCX file from Strava, RideWithGPS, Komoot or Garmin Connect. Turn cues in the file are used; otherwise turns are worked out from the route shape.</div>
+      <div class="note" id="rtInfo" style="margin:0">Load a GPX or TCX file from Strava, RideWithGPS, Komoot or Garmin Connect. Turn cues in the file are used; otherwise turns are worked out from the route shape. With no route loaded, Save map for offline saves the area on screen.</div>
       <div class="btns">
         <label class="filebtn">Load GPX / TCX<input type="file" id="rtFile" accept=".gpx,.tcx,application/gpx+xml,application/xml,text/xml"></label>
         <button id="rtOver">Overview</button>
@@ -224,6 +235,11 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
         <button id="rtClear" class="stop">Clear</button>
         <button id="rtClose">Close</button>
       </div>
+      <div id="rtProf"></div>
+      <h4>Offline map</h4>
+      <p class="note" id="offInfo" style="margin:0"></p>
+      <div class="btns"><button class="go" id="offSave">Save map for offline</button><button id="offClear">Clear offline maps</button></div>
+      <h4>Turns</h4>
       <div class="cuelist" id="cueList"></div>
     </div>
     <div class="mapbtns">
@@ -362,14 +378,29 @@ function pwZone(w){const p=w/S.ftp;return p<.55?1:p<.75?2:p<.9?3:p<1.05?4:p<1.2?
 const avg = (sum,n) => n ? Math.round(sum/n) : null;
 
 /* ---------- GPS ---------- */
-let lastFix = null;
+let lastFix = null, sbuf = [], fixes = [];
 if(!('geolocation' in navigator)) showErr('This browser has no GPS access.');
 else navigator.geolocation.watchPosition(p=>{
   const c=p.coords, now=Date.now();
   live.lat=c.latitude; live.lon=c.longitude; live.acc=c.accuracy; live.ele=c.altitude; live.lastGpsT=now;
   let v = (c.speed!=null && c.speed>=0) ? c.speed*3.6 : null;
   if(v==null && lastFix){ const dt=(p.timestamp-lastFix.t)/1000; if(dt>0 && c.accuracy<30) v = hav(lastFix.lat,lastFix.lon,c.latitude,c.longitude)/dt*3.6; }
-  if(c.accuracy<=50 && v!=null) live.gpsSpd = v;
+  fixes.push({lat:c.latitude, lon:c.longitude, t:p.timestamp}); if(fixes.length>3) fixes.shift();
+  if(c.accuracy<=50 && v!=null){
+    // GPS glitch filter: cap at 110 km/h, accept a sudden jump only if 2 s of real movement confirms it, median of 3
+    const stale = !live.lastGpsSpdT || Date.now()-live.lastGpsSpdT>10000; live.lastGpsSpdT=Date.now();
+    if(live.gpsSpd==null || stale) sbuf=[];
+    const out = (live.gpsSpd==null || stale) ? null : live.gpsSpd, dt = lastFix ? Math.min(3, Math.max(0.5,(p.timestamp-lastFix.t)/1000)) : 1;
+    let acc = v;
+    if(v>110) acc = out ?? 0;
+    else if(out!=null && v-out > 20*dt){
+      let v2=null; if(fixes.length===3){ const d2=(fixes[2].t-fixes[0].t)/1000; if(d2>0) v2=hav(fixes[0].lat,fixes[0].lon,fixes[2].lat,fixes[2].lon)/d2*3.6; }
+      acc = (v2!=null && Math.abs(v2-v)<12) ? v : out;
+    }
+    sbuf.push(acc); if(sbuf.length>3) sbuf.shift();
+    live.gpsSpd = [...sbuf].sort((a,b)=>a-b)[Math.floor(sbuf.length/2)];
+  }
+
   if(c.heading!=null && !isNaN(c.heading) && (c.speed??0)>1) live.heading=c.heading;
   else if(lastFix && hav(lastFix.lat,lastFix.lon,c.latitude,c.longitude)>6) live.heading=brg(lastFix.lat,lastFix.lon,c.latitude,c.longitude);
   lastFix={lat:c.latitude,lon:c.longitude,t:p.timestamp};
@@ -554,6 +585,163 @@ document.addEventListener('keydown', e=>{
   pagesEl.scrollTo({left:Math.max(0,Math.min(2,i))*(pagesEl.clientWidth+8),behavior:'smooth'});
 });
 
+/* ---------- offline map cache (IndexedDB, works without a service worker) ---------- */
+const TDB = (()=>{ let pr=null;
+  const open=()=> pr || (pr=new Promise((res,rej)=>{ if(!window.indexedDB) return rej(new Error('no idb')); const r=indexedDB.open('spoke-tiles',1); r.onupgradeneeded=()=>r.result.createObjectStore('t'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }));
+  const tx=(mode,fn)=>open().then(db=>new Promise((res,rej)=>{ const t=db.transaction('t',mode), q=fn(t.objectStore('t')); t.oncomplete=()=>res(q&&q.result); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error); }));
+  return {get:k=>tx('readonly',s=>s.get(k)), set:(k,v)=>tx('readwrite',s=>s.put(v,k)), count:()=>tx('readonly',s=>s.count()), clear:()=>tx('readwrite',s=>s.clear())}; })();
+const wrapU = u => typeof u==='string' && u.startsWith('https://') ? 'spk://'+u.slice(8) : u;
+const unwrapU = u => typeof u==='string' && u.startsWith('spk://') ? 'https://'+u.slice(6) : u;
+async function netGet(url){ const r=await fetch(url,{mode:'cors'}); if(!r.ok){ const e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.arrayBuffer(); }
+const asText = b => new TextDecoder().decode(b);
+function asType(b, type){ if(type==='json'){ const j=JSON.parse(asText(b)); if(j && Array.isArray(j.tiles)) j.tiles=j.tiles.map(wrapU); return j; } if(type==='string') return asText(b); return b; }
+if(window.maplibregl && maplibregl.addProtocol){
+  maplibregl.addProtocol('spk', async (params)=>{
+    const url=unwrapU(params.url), type=params.type;
+    if(type==='json' || type==='string'){            // small, can change: network first
+      try{ const b=await netGet(url); TDB.set(url,b).catch(()=>{}); return {data:asType(b,type)}; }
+      catch(e){ const c=await TDB.get(url).catch(()=>null); if(c) return {data:asType(c,type)}; throw e; } }
+    const c=await TDB.get(url).catch(()=>null);      // tiles, glyphs, sprites: cache first
+    if(c) return {data:c};
+    const b=await netGet(url); TDB.set(url,b).catch(()=>{}); return {data:b};
+  });
+}
+const STYLE_BASE='https://tiles.openfreemap.org/styles/';
+async function getStyle(name){
+  const url=STYLE_BASE+name; let st;
+  try{ const b=await netGet(url); TDB.set(url,b).catch(()=>{}); st=JSON.parse(asText(b)); }
+  catch{ const c=await TDB.get(url).catch(()=>null); if(!c) throw new Error('No signal and this map style is not saved offline yet'); st=JSON.parse(asText(c)); }
+  for(const s of Object.values(st.sources||{})){ if(s.url) s.url=wrapU(s.url); if(s.tiles) s.tiles=s.tiles.map(wrapU); }
+  if(st.glyphs) st.glyphs=wrapU(st.glyphs);
+  if(typeof st.sprite==='string') st.sprite=wrapU(st.sprite); else if(Array.isArray(st.sprite)) st.sprite=st.sprite.map(x=>({...x, url:wrapU(x.url)}));
+  return st;
+}
+function loadStyle(){ getStyle(styleName()).then(st=>{ mapReady=false; map.setStyle(st,{diff:false}); }).catch(e=>toast(e.message)); }
+
+const lon2x=(lon,z)=>Math.floor((lon+180)/360*2**z);
+const lat2y=(lat,z)=>{ const r=lat*Math.PI/180; return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z); };
+function tilesFor(pts, z0, z1, padFrom){
+  const out=new Set();
+  for(let z=z0; z<=z1; z++){ const pad = z>=padFrom ? 1 : 0, n=2**z;
+    for(const p of pts){ const x=lon2x(p.lon,z), y=lat2y(p.lat,z);
+      for(let dx=-pad;dx<=pad;dx++) for(let dy=-pad;dy<=pad;dy++){ const X=x+dx, Y=y+dy; if(X>=0&&Y>=0&&X<n&&Y<n) out.add(z+'/'+X+'/'+Y); } } }
+  return [...out];
+}
+let offJob=null;
+function offStatus(msg){ const o=LS.get('rc_off',null); $('offInfo').textContent = msg || (o ? `Saved: ${o.label} · ${o.tiles.toLocaleString()} tiles · ${(o.bytes/1048576).toFixed(0)} MB · ${new Date(o.at).toLocaleDateString([], {month:'short', day:'numeric'})}` : 'Nothing saved yet. Maps you have already viewed are kept automatically.'); }
+async function planOffline(){
+  if(!map || !mapReady){ toast('Open the map with signal first'); return null; }
+  const st=map.getStyle(); const vecId=Object.keys(st.sources).find(k=>st.sources[k].type==='vector');
+  const vsrc=vecId && map.getSource(vecId); const tmpl=vsrc && vsrc.tiles && vsrc.tiles[0];
+  if(!tmpl){ toast('Map not ready yet. Try again in a moment'); return null; }
+  let pts, label;
+  if(route){ pts=route.pts; label=route.name; }
+  else { const b=map.getBounds(); pts=[]; const N=12; for(let i=0;i<=N;i++) for(let j=0;j<=N;j++) pts.push({lat:b.getSouth()+(b.getNorth()-b.getSouth())*i/N, lon:b.getWest()+(b.getEast()-b.getWest())*j/N}); label='this map area'; }
+  const vmax=Math.min(14, vsrc.maxzoom||14);
+  const vec=tilesFor(pts, 6, vmax, 12).map(k=>{ const [z,x,y]=k.split('/'); return unwrapU(tmpl).replace('{z}',z).replace('{x}',x).replace('{y}',y); });
+  const sat = S.sat ? tilesFor(pts, 12, 16, 15).map(k=>{ const [z,x,y]=k.split('/'); return SAT_URL.replace('{z}',z).replace('{y}',y).replace('{x}',x); }) : [];
+  const extra=[STYLE_BASE+styleName()];
+  const sp = typeof st.sprite==='string' ? [st.sprite] : Array.isArray(st.sprite) ? st.sprite.map(x=>x.url) : [];
+  for(const u of sp) for(const ext of ['.json','.png','@2x.json','@2x.png']) extra.push(unwrapU(u)+ext);
+  const fonts=new Set(); for(const l of st.layers){ let f=l.layout && l.layout['text-font']; if(Array.isArray(f) && f[0]==='literal') f=f[1]; if(Array.isArray(f) && f.every(x=>typeof x==='string')) fonts.add(f.join(',')); }
+  if(st.glyphs) for(const f of fonts) for(const r of ['0-255','256-511','8192-8447']) extra.push(unwrapU(st.glyphs).replace('{fontstack}',encodeURIComponent(f)).replace('{range}',r));
+  if(vsrc.url) extra.push(unwrapU(vsrc.url));
+  const urls=[...extra, ...vec, ...sat];
+  return {urls, label, mb: Math.round(vec.length*0.045 + sat.length*0.022 + 2), vec:vec.length, sat:sat.length};
+}
+$('offSave').onclick=async()=>{
+  if(offJob){ offJob.cancel=true; return; }
+  if(!navigator.onLine){ toast('Needs a data connection'); return; }
+  const plan=await planOffline(); if(!plan) return;
+  if(plan.urls.length>9000){ toast(route?'Route too long to save in one go':'Area too big. Zoom in and try again'); return; }
+  openModal(`<h3>Save map for offline</h3><p class="tn">${route?'Route corridor':'Visible area'}: <b>${plan.vec.toLocaleString()}</b> map tiles${plan.sat?` + <b>${plan.sat.toLocaleString()}</b> satellite tiles`:''}, about <b>${plan.mb} MB</b>.</p>
+    <p class="note" style="margin:0">${S.sat?'Satellite is included because it is switched on.':'Turn Satellite on first if you also want imagery offline.'} Use Wi-Fi if you can.</p>
+    <div class="mbtns"><button id="ofX">Cancel</button><button class="go" id="ofGo">Download</button></div>`);
+  $('ofX').onclick=closeModal;
+  $('ofGo').onclick=async()=>{
+    closeModal(); const job=offJob={cancel:false}; let done=0, bytes=0, fail=0; const q=plan.urls.slice();
+    $('offSave').textContent='Cancel download';
+    const worker=async()=>{ while(q.length && !job.cancel){ const u=q.shift();
+      try{ let b=await TDB.get(u).catch(()=>null); if(!b){ b=await netGet(u); await TDB.set(u,b); } bytes+=b.byteLength; }catch{ fail++; }
+      done++; if(done%20===0||!q.length) offStatus(`Downloading ${Math.round(done/plan.urls.length*100)}% (${done.toLocaleString()} of ${plan.urls.length.toLocaleString()})`); } };
+    await Promise.all(Array.from({length:6}, worker));
+    $('offSave').textContent='Save map for offline'; offJob=null;
+    if(job.cancel){ offStatus(); toast('Download cancelled'); return; }
+    LS.set('rc_off', {label:plan.label, tiles:done-fail, bytes, at:Date.now()}); offStatus();
+    toast(fail ? `Saved with ${fail} tiles missing (often empty ocean/fields)` : 'Map saved for offline');
+  };
+};
+$('offClear').onclick=async()=>{ try{ await TDB.clear(); }catch{} try{localStorage.removeItem('rc_off')}catch{} offStatus(); toast('Offline maps cleared'); };
+if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---------- climbs (ClimbPro-style) ---------- */
+function findClimbs(P){
+  const withEle=P.filter(p=>p.ele!=null).length; if(withEle < P.length*0.5 || P.length<10) return [];
+  const STEP=25, total=P[P.length-1].d, n=Math.floor(total/STEP)+1, raw=new Array(n);
+  let j=0; for(let i=0;i<n;i++){ const d=i*STEP; while(j<P.length-2 && P[j+1].d<d) j++;
+    let a=P[j], b=P[j+1]; if(a.ele==null||b.ele==null){ raw[i]= a.ele ?? b.ele ?? (i?raw[i-1]:0); continue; }
+    const t=(d-a.d)/Math.max(1e-6,b.d-a.d); raw[i]=a.ele+(b.ele-a.ele)*Math.max(0,Math.min(1,t)); }
+  const e=raw.map((_,i)=>{ let s=0,c=0; for(let k=Math.max(0,i-3);k<=Math.min(n-1,i+3);k++){ s+=raw[k]; c++; } return s/c; });
+  const climbs=[]; let i=0;
+  while(i<n-1){
+    if(e[i+1]<=e[i]){ i++; continue; }
+    let s=i, top=i, k=i+1;
+    for(;k<n;k++){ if(e[k]>e[top]) top=k; if(e[top]-e[k] > Math.max(10,(e[top]-e[s])*0.25)) break; }
+    while(s<top-4 && (e[s+4]-e[s])/(4*STEP) < 0.02) s++;
+    const gain=e[top]-e[s], len=(top-s)*STEP;
+    if(gain>=30 && len>=400 && gain/len>=0.03){
+      let mg=0; for(let q=s;q+4<=top;q++) mg=Math.max(mg,(e[q+4]-e[q])/(4*STEP));
+      const prof=[]; const stepP=Math.max(1,Math.floor((top-s)/60)); for(let q=s;q<=top;q+=stepP) prof.push([q*STEP, e[q]]); prof.push([top*STEP, e[top]]);
+      climbs.push({d0:s*STEP, d1:top*STEP, gain, len, grade:gain/len*100, maxGrade:mg*100, prof});
+    }
+    i=Math.max(top+1, i+1);
+  }
+  return climbs;
+}
+const gradeColor = g => g<4 ? '#ffb020' : g<7 ? '#ff7a00' : g<10 ? '#ff3b30' : '#b0004d';
+function climbSvg(c, at){
+  const W=300, H=54, d0=c.prof[0][0], d1=c.prof[c.prof.length-1][0], e0=Math.min(...c.prof.map(p=>p[1])), e1=Math.max(...c.prof.map(p=>p[1]));
+  const X=d=>(d-d0)/Math.max(1,d1-d0)*W, Y=v=>H-4-(v-e0)/Math.max(1,e1-e0)*(H-10);
+  let segs=''; for(let k=1;k<c.prof.length;k++){ const [da,ea]=c.prof[k-1], [db,eb]=c.prof[k], g=(eb-ea)/Math.max(1,db-da)*100;
+    segs+=`<path d="M${X(da).toFixed(1)} ${H}L${X(da).toFixed(1)} ${Y(ea).toFixed(1)}L${X(db).toFixed(1)} ${Y(eb).toFixed(1)}L${X(db).toFixed(1)} ${H}Z" fill="${gradeColor(g)}"/>`; }
+  const m = at!=null && at>=d0 ? `<line x1="${X(at).toFixed(1)}" x2="${X(at).toFixed(1)}" y1="0" y2="${H}" stroke="#fff" stroke-width="3"/>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${segs}${m}</svg>`;
+}
+const climbState={warned:{}, topped:{}};
+function climbRender(){
+  const els=[$('climbRide'),$('climbMap')];
+  const hide=()=>els.forEach(e=>{ e.classList.remove('on'); e.innerHTML=''; });
+  if(!route || !route.climbs || !route.climbs.length || nav.d==null || nav.off){ hide(); return; }
+  const idx=route.climbs.findIndex(c=>nav.d>=c.d0-400 && nav.d<=c.d1+15);
+  if(idx<0){ hide(); return; }
+  const c=route.climbs[idx], eU=imp()?'ft':'m';
+  const prof=c.prof, eAt = d => { for(let k=1;k<prof.length;k++) if(prof[k][0]>=d){ const [da,ea]=prof[k-1],[db,eb]=prof[k]; return ea+(eb-ea)*(d-da)/Math.max(1,db-da); } return prof[prof.length-1][1]; };
+  let html;
+  if(nav.d<c.d0){
+    html=`<div class="ch"><span>Climb ${idx+1} of ${route.climbs.length} ahead</span><span>${c.grade.toFixed(1)}% avg · max ${c.maxGrade.toFixed(0)}%</span></div>
+      <div class="cn"><div><b class="num">${fmtNd(c.d0-nav.d)}</b>to start</div><div><b class="num">${fmtD(c.len)}</b>long</div><div><b class="num">${Math.round(mTo(c.gain))}</b>${eU} up</div></div>${climbSvg(c,null)}`;
+    if(!climbState.warned[idx] && c.d0-nav.d<250){ climbState.warned[idx]=1; say(`Climb ahead. ${spokenDist(c.len)} at ${Math.round(c.grade)} percent, ${Math.round(mTo(c.gain))} ${imp()?'feet':'meters'} up.`); }
+  } else {
+    const left=Math.max(0,c.d1-nav.d), up=Math.max(0, prof[prof.length-1][1]-eAt(nav.d));
+    const next = prof.find(p=>p[0]>nav.d+100), here = eAt(nav.d), g = next ? (next[1]-here)/Math.max(1,next[0]-nav.d)*100 : 0;
+    html=`<div class="ch"><span>Climb ${idx+1} of ${route.climbs.length}</span><span>${c.grade.toFixed(1)}% avg</span></div>
+      <div class="cn"><div><b class="num">${fmtNd(left)}</b>to top</div><div><b class="num">${Math.round(mTo(up))}</b>${eU} to go</div><div><b class="num" style="color:${gradeColor(g)}">${Math.max(0,g).toFixed(0)}%</b>next 100 m</div></div>${climbSvg(c,nav.d)}`;
+    if(left<20 && !climbState.topped[idx]){ climbState.topped[idx]=1; say('Top of the climb'); }
+  }
+  els.forEach(e=>{ e.classList.add('on'); e.innerHTML=html; });
+}
+function routeProfileSvg(){
+  if(!route || !route.climbs) return '';
+  const P=route.pts.filter(p=>p.ele!=null); if(P.length<10) return '<p class="note" style="margin:8px 0 0">This route file has no elevation, so climbs can\'t be shown.</p>';
+  const W=300, H=70, T=route.total, eMin=Math.min(...P.map(p=>p.ele)), eMax=Math.max(...P.map(p=>p.ele));
+  const X=d=>d/T*W, Y=v=>H-3-(v-eMin)/Math.max(1,eMax-eMin)*(H-8), stepP=Math.max(1,Math.floor(P.length/200));
+  let line=`M0 ${H}`; for(let k=0;k<P.length;k+=stepP) line+=`L${X(P[k].d).toFixed(1)} ${Y(P[k].ele).toFixed(1)}`; line+=`L${W} ${H}Z`;
+  const hl=route.climbs.map(c=>`<rect x="${X(c.d0).toFixed(1)}" y="0" width="${Math.max(1.5,X(c.d1)-X(c.d0)).toFixed(1)}" height="${H}" fill="${gradeColor(c.grade)}" opacity=".35"/>`).join('');
+  const list=route.climbs.map((c,k)=>`<div><span>${fmtD(c.d0)}</span>Climb ${k+1}: ${fmtD(c.len)} at ${c.grade.toFixed(1)}% (max ${c.maxGrade.toFixed(0)}%), ${Math.round(mTo(c.gain))} ${imp()?'ft':'m'}</div>`).join('');
+  return `<div class="prof"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Route elevation profile">${hl}<path d="${line}" fill="var(--dim)" opacity=".55"/></svg></div>
+    <div class="cuelist" style="margin-top:6px">${list || '<div>No significant climbs on this route.</div>'}</div>`;
+}
+
 /* ---------- audio cues ---------- */
 let actx=null;
 function audioOn(){ try{ if(!actx){ const A=window.AudioContext||window.webkitAudioContext; if(A) actx=new A(); } if(actx && actx.state==='suspended') actx.resume(); }catch{} }
@@ -609,7 +797,7 @@ function buildRoute(pts, raw, name){
     P.push({lat:p.lat, lon:p.lon, ele:isFinite(p.ele)?p.ele:null, d}); }
   // cumulative ascent with 3 m hysteresis
   let asc=0, ref=null; for(const p of P){ if(p.ele!=null){ if(ref==null) ref=p.ele; else if(p.ele-ref>3){asc+=p.ele-ref;ref=p.ele;} else if(ref-p.ele>3) ref=p.ele; } p.asc=asc; }
-  const R0 = {name, pts:P, total:d, climb:asc, cues:[], auto:false};
+  const R0 = {name, pts:P, total:d, climb:asc, cues:[], auto:false, climbs:findClimbs(P)};
   // snap file cues onto the route
   const k=Math.cos(P[0].lat*Math.PI/180);
   for(const c of raw){
@@ -658,7 +846,7 @@ function loadSaved(){
   try{ route = buildRoute(r.pts.map(a=>({lat:a[0],lon:a[1],ele:a[2]})), (r.cues||[]).map(c=>({lat:c[0],lon:c[1],type:c[2],text:c[3]})), r.name); }catch{ route=null; }
 }
 function setRoute(r){
-  route=r; Object.assign(nav,{i:0,d:null,off:false,offN:0,cue:-1,warned:{},done:false});
+  route=r; Object.assign(nav,{i:0,d:null,off:false,offN:0,cue:-1,warned:{},done:false}); climbState.warned={}; climbState.topped={};
   saveRoute(); renderRouteSheet(); mapData(); navRender();
   if(live.lat!=null) navUpdate(live.lat, live.lon);
 }
@@ -669,11 +857,12 @@ const fmtNd = m => { // short distance for cues
 const fmtD = m => (kmTo(m/1000)).toFixed(1)+' '+(imp()?'mi':'km');
 function renderRouteSheet(){
   const esc = t => String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  if(!route){ $('rtName').textContent='No route loaded'; $('cueList').innerHTML=''; ['rtOver','rtRev','rtClear'].forEach(id=>$(id).disabled=true); return; }
+  if(!route){ $('rtName').textContent='No route loaded'; $('cueList').innerHTML=''; $('rtProf').innerHTML=''; ['rtOver','rtRev','rtClear'].forEach(id=>$(id).disabled=true); return; }
   ['rtOver','rtRev','rtClear'].forEach(id=>$(id).disabled=false);
   $('rtName').textContent = route.name;
   $('rtInfo').textContent = `${fmtD(route.total)} · ${Math.round(mTo(route.climb))} ${imp()?'ft':'m'} climbing · ${route.cues.length-1} ${route.auto?'turns detected from the route shape':'cues from the file'}`;
   $('cueList').innerHTML = route.cues.map(c=>`<div><span>${fmtD(c.d)}</span>${esc(c.text)}</div>`).join('');
+  $('rtProf').innerHTML = routeProfileSvg();
 }
 $('rtFile').addEventListener('change', async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return; audioOn(); voiceOn();
@@ -757,6 +946,7 @@ function navRender(){
   }
   els.forEach(e=>{ e.className=cls; e.innerHTML=html; });
   if(mapReady) mapNavData();
+  climbRender();
 }
 
 /* ---------- map (MapLibre, free OpenFreeMap tiles) ---------- */
@@ -768,21 +958,23 @@ function initMap(){
   if(!window.maplibregl){ fallback=true; $('mapc').style.display='block'; $('mapgl').style.display='none'; $('bSat').classList.add('hide'); $('bFollow').classList.add('hide'); return; }
   try{
     const c = live.lat!=null ? [live.lon,live.lat] : route ? [route.pts[0].lon,route.pts[0].lat] : [-96.797,32.776];
-    map = new maplibregl.Map({container:'mapgl', style:'https://tiles.openfreemap.org/styles/'+styleName(), center:c, zoom:15.5, attributionControl:{compact:true}, pitchWithRotate:true, maxPitch:65});
+    map = new maplibregl.Map({container:'mapgl', style:{version:8, sources:{}, layers:[{id:'bg', type:'background', paint:{'background-color': S.sun?'#e8ecef':'#1b1f24'}}]}, center:c, zoom:15.5, attributionControl:{compact:true}, pitchWithRotate:true, maxPitch:65});
     map.on('style.load', addLayers);
     map.on('error', e=>{ if(!mapReady && e && e.error && /style/i.test(String(e.error.message||''))) toast('Map tiles unavailable. Check your data connection.'); });
     const userMove = e => { if(e.originalEvent){ follow=0; followUi(); } };
     map.on('dragstart', userMove); map.on('rotatestart', userMove); map.on('pitchstart', userMove);
     const el=document.createElement('div'); el.className='me nohd';
     meMk = new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat(c).addTo(map);
+    loadStyle();
   }catch(err){ fallback=true; map=null; $('mapc').style.display='block'; $('mapgl').style.display='none'; $('bSat').classList.add('hide'); toast('This phone cannot draw the map (no WebGL). Using the simple trace.'); }
 }
 function addLayers(){
   const empty={type:'FeatureCollection',features:[]};
-  for(const id of ['route','done','trace','cues']) if(!map.getSource(id)) map.addSource(id,{type:'geojson',data:empty});
+  for(const id of ['route','done','trace','cues','climbs']) if(!map.getSource(id)) map.addSource(id,{type:'geojson',data:empty});
   const add=(l)=>{ if(!map.getLayer(l.id)) map.addLayer(l); };
   add({id:'route-casing',type:'line',source:'route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],10,5,16,12]}});
   add({id:'route-line',type:'line',source:'route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#0a84ff','line-width':['interpolate',['linear'],['zoom'],10,3,16,8]}});
+  add({id:'climb-line',type:'line',source:'climbs',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':['get','c'],'line-width':['interpolate',['linear'],['zoom'],10,3,16,8]}});
   add({id:'done-line',type:'line',source:'done',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#8e8e93','line-width':['interpolate',['linear'],['zoom'],10,3,16,8]}});
   add({id:'trace-line',type:'line',source:'trace',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ff9f0a','line-width':['interpolate',['linear'],['zoom'],10,2,16,5],'line-opacity':.9}});
   add({id:'cue-dots',type:'circle',source:'cues',minzoom:12,paint:{'circle-radius':6,'circle-color':'#ffffff','circle-stroke-color':'#0a84ff','circle-stroke-width':3}});
@@ -792,6 +984,7 @@ function mapData(){
   if(!mapReady) return;
   map.getSource('route').setData(route ? {type:'Feature',geometry:{type:'LineString',coordinates:route.pts.map(p=>[p.lon,p.lat])}} : {type:'FeatureCollection',features:[]});
   map.getSource('cues').setData({type:'FeatureCollection',features: route ? route.cues.filter(c=>c.kind!=='finish').map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[route.pts[c.i].lon,route.pts[c.i].lat]}})) : []});
+  map.getSource('climbs').setData({type:'FeatureCollection', features: route && route.climbs ? route.climbs.map(c=>({type:'Feature', properties:{c:gradeColor(c.grade)}, geometry:{type:'LineString', coordinates: route.pts.filter(p=>p.d>=c.d0 && p.d<=c.d1).map(p=>[p.lon,p.lat])}})).filter(f=>f.geometry.coordinates.length>1) : []});
   mapNavData(); traceData();
 }
 function mapNavData(){
@@ -835,7 +1028,7 @@ function overview(){
   map.fitBounds(b,{padding:{top:120,bottom:150,left:40,right:70}, bearing:0, pitch:0, duration:800});
 }
 function applyMapStyle(){
-  if(map){ mapReady=false; map.setStyle('https://tiles.openfreemap.org/styles/'+styleName()); }
+  if(map) loadStyle();
 }
 function openMap(){
   initMap(); if(map){ map.resize(); mapTick(); } else drawFallback();
@@ -847,7 +1040,7 @@ function applySat(){
   if(!mapReady) return;
   const has=!!map.getLayer('sat');
   if(S.sat && !has){
-    if(!map.getSource('sat')) map.addSource('sat',{type:'raster', tiles:[SAT_URL], tileSize:256, maxzoom:19, attribution:'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community'});
+    if(!map.getSource('sat')) map.addSource('sat',{type:'raster', tiles:[wrapU(SAT_URL)], tileSize:256, maxzoom:19, attribution:'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community'});
     const sym=map.getStyle().layers.find(l=>l.type==='symbol');
     map.addLayer({id:'sat', type:'raster', source:'sat', paint:{'raster-fade-duration':150}}, sym ? sym.id : 'route-casing');
   } else if(!S.sat && has){ map.removeLayer('sat'); if(map.getSource('sat')) map.removeSource('sat'); }
@@ -1254,7 +1447,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus();
 }
 </script>
 </body>

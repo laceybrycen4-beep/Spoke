@@ -29,7 +29,7 @@ backed up from the phone to the PRIVATE repo `laceybrycen4-beep/spoke-data`.
    Do not change the UI layout, storage formats, or the backup format unless fixing a bug.
    If there are fewer than 2 matched rides, or errors are already under 1% distance and 60 s moving time,
    make no code change and only write the report.
-4. Test: `python3 tests/sim_ride.py` must PASS (install playwright if missing; optional
+4. Test: `python3 tests/sim_ride.py` AND `python3 tests/sim_nav.py` (offline maps, climbs, GPS glitch filter) must PASS (install playwright if missing; optional
    `MAPLIBRE_DIR` with `npm i maplibre-gl@5.23.0`). Add a case to the test if your change needs one.
    Also re-run your matched rides through the changed logic offline (replay tracks) and show
    before/after error. Ship only if the replay improves and the test passes.
