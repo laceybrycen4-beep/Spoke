@@ -150,6 +150,9 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 .calt span:nth-child(5n+1){text-align:left}.calt span:nth-child(-n+5){color:var(--dim);font-size:12px;font-weight:600}
 .hist .rb{display:flex;flex-direction:column;gap:6px;flex:none}.hist .rb button{min-height:40px;font-size:14px;padding:0 12px}
 .hist .ok{font-size:12px;color:var(--go);font-weight:600;text-align:right}
+.pinrow{display:flex;gap:8px;margin-top:10px}.pinrow input{flex:1;width:auto;text-align:center;letter-spacing:.3em}
+.recode{font:700 34px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.08em;text-align:center;background:var(--card);border-radius:12px;padding:14px;margin:10px 0;-webkit-user-select:all;user-select:all}
+.linkbtn{background:none;border:0;color:var(--dim);text-decoration:underline;min-height:44px;font-size:14px}
 .bkb{display:flex;gap:8px;margin-top:10px}.bkb button{flex:1}
 #bkOwner,#bkRepo,#bkTok{width:min(210px,54vw)}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}#bLock.hold .fill{transition:none}}
@@ -225,6 +228,7 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
     </div>
     <div class="mapbtns">
       <button class="mbtn" id="bRoute">Route</button>
+      <button class="mbtn" id="bSat">Satellite</button>
       <button class="mbtn" id="bFollow">Heading up</button>
       <button class="mbtn hide" id="bRecenter">Recenter</button>
     </div>
@@ -247,6 +251,7 @@ body.paused .f.big .l span:first-child::after{content:" · paused";color:var(--a
 
 <section class="view" id="v-set">
   <h2>Settings</h2>
+  <div class="card" id="lockCard"></div>
   <div class="card">
     <label class="row">Units<select id="units"><option value="imp">mph / mi / ft</option><option value="met">km/h / km / m</option></select></label>
     <label class="row">FTP (watts)<input id="ftp" type="number" inputmode="numeric" min="50" max="600"></label>
@@ -303,7 +308,7 @@ const IDB = (()=>{ let pr=null;
 const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 
 /* ---------- settings ---------- */
-const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1,voice:1}, LS.get('rc_settings',{}));
+const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1,voice:1,sat:0}, LS.get('rc_settings',{}));
 const saveS = () => LS.set('rc_settings', S);
 for (const k of ['units','ftp','maxhr','wheel','ap','autolock','sun','mstyle','snd','voice']) {
   $(k).value = S[k];
@@ -757,10 +762,10 @@ function navRender(){
 /* ---------- map (MapLibre, free OpenFreeMap tiles) ---------- */
 let map=null, mapReady=false, meMk=null, follow=2, lastMode=2, lastTrace=0, fallback=false;
 const mapOn = () => $('v-map').classList.contains('on');
-const styleName = () => S.mstyle==='auto' ? (S.sun ? 'liberty' : 'dark') : S.mstyle;
+const styleName = () => S.mstyle==='auto' ? (S.sat || !S.sun ? 'dark' : 'liberty') : S.mstyle;
 function initMap(){
   if(map || fallback) return;
-  if(!window.maplibregl){ fallback=true; $('mapc').style.display='block'; $('mapgl').style.display='none'; $('bFollow').classList.add('hide'); return; }
+  if(!window.maplibregl){ fallback=true; $('mapc').style.display='block'; $('mapgl').style.display='none'; $('bSat').classList.add('hide'); $('bFollow').classList.add('hide'); return; }
   try{
     const c = live.lat!=null ? [live.lon,live.lat] : route ? [route.pts[0].lon,route.pts[0].lat] : [-96.797,32.776];
     map = new maplibregl.Map({container:'mapgl', style:'https://tiles.openfreemap.org/styles/'+styleName(), center:c, zoom:15.5, attributionControl:{compact:true}, pitchWithRotate:true, maxPitch:65});
@@ -770,7 +775,7 @@ function initMap(){
     map.on('dragstart', userMove); map.on('rotatestart', userMove); map.on('pitchstart', userMove);
     const el=document.createElement('div'); el.className='me nohd';
     meMk = new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat(c).addTo(map);
-  }catch(err){ fallback=true; map=null; $('mapc').style.display='block'; $('mapgl').style.display='none'; toast('This phone cannot draw the map (no WebGL). Using the simple trace.'); }
+  }catch(err){ fallback=true; map=null; $('mapc').style.display='block'; $('mapgl').style.display='none'; $('bSat').classList.add('hide'); toast('This phone cannot draw the map (no WebGL). Using the simple trace.'); }
 }
 function addLayers(){
   const empty={type:'FeatureCollection',features:[]};
@@ -781,7 +786,7 @@ function addLayers(){
   add({id:'done-line',type:'line',source:'done',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#8e8e93','line-width':['interpolate',['linear'],['zoom'],10,3,16,8]}});
   add({id:'trace-line',type:'line',source:'trace',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ff9f0a','line-width':['interpolate',['linear'],['zoom'],10,2,16,5],'line-opacity':.9}});
   add({id:'cue-dots',type:'circle',source:'cues',minzoom:12,paint:{'circle-radius':6,'circle-color':'#ffffff','circle-stroke-color':'#0a84ff','circle-stroke-width':3}});
-  mapReady=true; mapData();
+  mapReady=true; mapData(); applySat();
 }
 function mapData(){
   if(!mapReady) return;
@@ -835,6 +840,23 @@ function applyMapStyle(){
 function openMap(){
   initMap(); if(map){ map.resize(); mapTick(); } else drawFallback();
 }
+
+const SAT_URL='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+function applySat(){
+  $('bSat').textContent = S.sat ? 'Streets' : 'Satellite';
+  if(!mapReady) return;
+  const has=!!map.getLayer('sat');
+  if(S.sat && !has){
+    if(!map.getSource('sat')) map.addSource('sat',{type:'raster', tiles:[SAT_URL], tileSize:256, maxzoom:19, attribution:'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community'});
+    const sym=map.getStyle().layers.find(l=>l.type==='symbol');
+    map.addLayer({id:'sat', type:'raster', source:'sat', paint:{'raster-fade-duration':150}}, sym ? sym.id : 'route-casing');
+  } else if(!S.sat && has){ map.removeLayer('sat'); if(map.getSource('sat')) map.removeSource('sat'); }
+}
+$('bSat').onclick=()=>{
+  const before=styleName(); S.sat = S.sat ? 0 : 1; saveS();
+  if(map && styleName()!==before) applyMapStyle(); else applySat();
+  toast(S.sat ? 'Satellite on' : 'Street map');
+};
 
 /* fallback: plain canvas trace when the map library or WebGL is unavailable */
 function drawFallback(){
@@ -1147,9 +1169,79 @@ ${trk}
   toast('GPX saved. Upload it to Strava or Garmin Connect.');
 }
 
+/* ---------- owner lock (PIN for Settings + Sensors) ---------- */
+let PINS = LS.get('rc_pin', null), unlockOK=false, pinFails=0, pinWaitUntil=0;
+const pinSet = () => !!(PINS && PINS.h);
+const unlocked = () => !pinSet() || unlockOK;
+async function sha(t){ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+const rnd = (n, abc) => { const a=new Uint32Array(n); crypto.getRandomValues(a); return [...a].map(x=>abc[x%abc.length]).join(''); };
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') unlockOK=false; });
+function askPin(onOk){
+  openModal(`<h3>Owner PIN</h3><p class="note" style="margin:2px 0 0">Settings and Sensors are locked.</p>
+    <div class="pinrow"><input id="pinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="PIN"></div>
+    <div class="mbtns"><button id="pinX">Cancel</button><button class="go" id="pinGo">Unlock</button></div>
+    <button class="linkbtn" id="pinForgot">Forgot PIN? Use recovery code</button>`);
+  setTimeout(()=>{ const i=$('pinIn'); if(i) i.focus(); },50);
+  const go=async()=>{
+    if(Date.now()<pinWaitUntil){ toast(`Too many tries. Wait ${Math.ceil((pinWaitUntil-Date.now())/1000)} s`); return; }
+    if(await sha(PINS.salt+$('pinIn').value)===PINS.h){ pinFails=0; unlockOK=true; closeModal(); onOk(); }
+    else { pinFails++; $('pinIn').value=''; if(pinFails>=5) pinWaitUntil=Date.now()+30000*2**(pinFails-5); toast('Wrong PIN'); buzz(200); }
+  };
+  $('pinGo').onclick=go; $('pinIn').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  $('pinX').onclick=closeModal;
+  $('pinForgot').onclick=()=>{
+    openModal(`<h3>Recovery code</h3><p class="note" style="margin:2px 0 0">Enter the code you saved when you set the PIN. This removes the PIN so you can set a new one.</p>
+      <div class="pinrow"><input id="recIn" autocapitalize="characters" autocomplete="off" spellcheck="false" style="letter-spacing:.1em"></div>
+      <div class="mbtns"><button id="recX">Cancel</button><button class="go" id="recGo">Unlock</button></div>`);
+    $('recX').onclick=closeModal;
+    $('recGo').onclick=async()=>{
+      if(Date.now()<pinWaitUntil){ toast('Too many tries. Wait and try again'); return; }
+      const code=$('recIn').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if(await sha(PINS.salt+code)===PINS.rh){ PINS=null; try{localStorage.removeItem('rc_pin')}catch{} unlockOK=true; closeModal(); renderLock(); onOk(); toast('PIN removed. Set a new one in Settings.'); }
+      else { pinFails++; if(pinFails>=5) pinWaitUntil=Date.now()+30000*2**(pinFails-5); toast('Wrong recovery code'); }
+    };
+  };
+}
+function renderLock(){
+  const c=$('lockCard');
+  if(pinSet()){
+    c.innerHTML=`<b>Owner lock is on</b><p class="note" style="margin:4px 0 0">Settings and Sensors need your PIN. Anyone can still ride, see the map and follow a route.</p>
+      <div class="mbtns"><button id="lkChange">Change PIN</button><button class="stop" id="lkOff">Turn off</button></div>`;
+    $('lkChange').onclick=()=>pinSetup();
+    let armed=false;
+    $('lkOff').onclick=()=>{ if(!armed){ armed=true; $('lkOff').textContent='Tap again'; setTimeout(()=>{ armed=false; if($('lkOff')) $('lkOff').textContent='Turn off'; },3000); return; }
+      PINS=null; try{localStorage.removeItem('rc_pin')}catch{} renderLock(); toast('Owner lock off'); };
+  } else {
+    c.innerHTML=`<b>Owner lock</b><p class="note" style="margin:4px 0 0">Lock Settings and Sensors with a PIN so other riders can't change your setup, see your ride history or your backup token.</p>
+      <div class="mbtns"><button class="go" id="lkOn">Set a PIN</button></div>`;
+    $('lkOn').onclick=()=>pinSetup();
+  }
+}
+function pinSetup(){
+  openModal(`<h3>Set owner PIN</h3><p class="note" style="margin:2px 0 0">4 to 8 digits.</p>
+    <div class="pinrow"><input id="pn1" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autocomplete="off"><input id="pn2" type="password" inputmode="numeric" maxlength="8" placeholder="Again" autocomplete="off"></div>
+    <div class="mbtns"><button id="pnX">Cancel</button><button class="go" id="pnGo">Save PIN</button></div>`);
+  $('pnX').onclick=closeModal;
+  $('pnGo').onclick=async()=>{
+    const a=$('pn1').value, b=$('pn2').value;
+    if(!/^\d{4,8}$/.test(a)){ toast('Use 4 to 8 digits'); return; }
+    if(a!==b){ toast("PINs don't match"); return; }
+    const salt=rnd(16,'0123456789abcdef'), rec=rnd(8,'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
+    PINS={salt, h:await sha(salt+a), rh:await sha(salt+rec)}; LS.set('rc_pin', PINS); unlockOK=true; renderLock();
+    openModal(`<h3>Save your recovery code</h3><p class="note" style="margin:2px 0 0">If you forget the PIN, this code is the only way back into Settings without wiping the app. It is shown once.</p>
+      <div class="recode">${rec.slice(0,4)}-${rec.slice(4)}</div>
+      <div class="mbtns"><button id="rcCopy">Copy</button><button class="go" id="rcOk">I saved it</button></div>`);
+    $('rcCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(rec.slice(0,4)+'-'+rec.slice(4)); toast('Copied'); }catch{ toast('Copy failed: write it down'); } };
+    $('rcOk').onclick=()=>{ closeModal(); toast('Owner lock on'); };
+  };
+}
+
 /* ---------- tabs ---------- */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
-  if(locked && (b.dataset.v==='sensors'||b.dataset.v==='set')) return;
+  const priv = b.dataset.v==='sensors'||b.dataset.v==='set';
+  if(locked && priv) return;
+  if(priv && !unlocked()){ askPin(()=>b.click()); return; }
+  if(!priv) unlockOK=false;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='v-'+b.dataset.v));
   $('ctrl').style.display = (b.dataset.v==='ride'||b.dataset.v==='map') ? 'flex' : 'none';
@@ -1162,7 +1254,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat();
 }
 </script>
 </body>
