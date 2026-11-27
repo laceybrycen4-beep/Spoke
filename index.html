@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0b0d10">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spoke">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <title>Spoke ride computer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css">
@@ -283,6 +289,7 @@ body.sosmode .sosb{animation:sosp 1s ease-in-out infinite alternate}
 <section class="view" id="v-set">
   <h2>Settings</h2>
   <div class="card" id="lockCard"></div>
+  <div class="card" id="instCard"></div>
   <div class="card">
     <label class="row">Units<select id="units"><option value="imp">mph / mi / ft</option><option value="met">km/h / km / m</option></select></label>
     <label class="row">FTP (watts)<input id="ftp" type="number" inputmode="numeric" min="50" max="600"></label>
@@ -1497,6 +1504,22 @@ function sosScreen(){
   $('sosOk').onclick=async()=>{ sosOn=false; clearTimeout(sosRetry); document.body.classList.remove('sosmode'); $('mbox').classList.remove('sosm'); closeModal(); toast('SOS cancelled'); if(LIVE.on) livePost({sos:0}); };
 }
 
+/* ---------- install as an app ---------- */
+let instPrompt=null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); instPrompt=e; renderInstall(); });
+window.addEventListener('appinstalled', ()=>{ instPrompt=null; renderInstall(); toast('Spoke installed'); });
+function renderInstall(){
+  const c=$('instCard'); if(!c) return;
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(isStandalone()){ c.innerHTML='<b>Installed as an app ✓</b><p class="note" style="margin:4px 0 0">Spoke opens full screen from your home screen and works offline once opened.</p>'; return; }
+  if(instPrompt){ c.innerHTML='<b>Install Spoke as an app</b><p class="note" style="margin:4px 0 0">Adds the Spoke icon to your home screen; opens full screen, no browser bars.</p><div class="mbtns"><button class="go" id="instGo">Install Spoke</button></div>';
+    $('instGo').onclick=async()=>{ const pr=instPrompt; instPrompt=null; pr.prompt(); try{ await pr.userChoice; }catch{} renderInstall(); }; return; }
+  c.innerHTML = ios
+    ? '<b>Add Spoke to your home screen</b><p class="note" style="margin:4px 0 0">Safari: tap Share, then Add to Home Screen. Safari has no Bluetooth, so your watch HR won\'t connect from that icon. For HR, keep using Spoke in Bluefy (bookmark it there).</p>'
+    : '<b>Install Spoke as an app</b><p class="note" style="margin:4px 0 0">In Chrome: tap the ⋮ menu, then Install app (or Add to Home screen).</p>';
+}
+
 /* ---------- owner lock (PIN for Settings + Sensors) ---------- */
 let PINS = LS.get('rc_pin', null), unlockOK=false, pinFails=0, pinWaitUntil=0;
 const pinSet = () => !!(PINS && PINS.h);
@@ -1582,7 +1605,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg(); renderInstall();
 }
 </script>
 </body>

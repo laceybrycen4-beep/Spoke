@@ -1,8 +1,8 @@
 // Spoke app-shell cache: lets the app open with no signal once it has been opened online.
 // Map tiles are cached separately by the page (IndexedDB), so this file stays small.
-const CACHE = 'spoke-shell-v1';
+const CACHE = 'spoke-shell-v2';
 const SHELL = [
-  './', './index.html',
+  './', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   'https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js',
   'https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css'
 ];
