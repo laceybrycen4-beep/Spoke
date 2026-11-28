@@ -10,6 +10,7 @@ Open: https://laceybrycen4-beep.github.io/Spoke/ (iPhone: use the Bluefy browser
 - Rides back up to a private GitHub repo (`spoke-data`) set in Settings, Backup.
 - A weekly Claude agent compares Spoke with Strava/Garmin and ships tested fixes: see `AGENT.md`.
 - Live tracking: friends open the shared `live.html` link (end-to-end encrypted, relayed by ntfy.sh). SOS: hold the red button 2 s.
-- Tests: `python3 tests/sim_ride.py`, `python3 tests/sim_nav.py`, `python3 tests/sim_live.py`, `python3 tests/sim_workout.py`, `python3 tests/sim_run.py`
+- Tests: `python3 tests/sim_ride.py`, `python3 tests/sim_nav.py`, `python3 tests/sim_live.py`, `python3 tests/sim_workout.py`, `python3 tests/sim_run.py`, `python3 tests/sim_insights.py`
+- Insights: tap an activity for best efforts and PRs, splits, HR zones, effort, pacing, drift and trend. Share: Story/Post images (photo, map, sticker) to Instagram via the share sheet.
 - Run mode: switch Ride/Run before starting; pace, mile/km splits, running workouts, separate run calibration.
 - Workouts tab: 13 preloaded workouts and a rule-based coach that picks one from your time, feel, goal and last 7 days of rides.

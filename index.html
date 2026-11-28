@@ -297,6 +297,30 @@ input,select{background:var(--surf2);border:0;border-radius:10px;font-family:Fig
 .lapban .g b{font-weight:900}
 .rowbtn{display:flex;width:100%;justify-content:space-between;align-items:center;background:var(--surf);border-radius:var(--r);padding:16px;min-height:56px;font-size:16px;box-shadow:var(--sh);margin-bottom:10px}
 .rowbtn span{color:var(--dim);font-weight:600}
+/* activity insights */
+.act[data-id]{cursor:pointer}
+.iah span{font-size:13px;color:var(--dim);font-weight:600}
+.sumg small{display:block;font-size:12px;color:var(--acc);font-weight:700}
+.ih{margin:18px 0 8px;font:800 17px Figtree,sans-serif}
+.ins{display:flex;flex-direction:column;gap:8px}
+.in{display:flex;gap:12px;align-items:flex-start;background:var(--surf2);border-radius:14px;padding:12px 14px}
+.in i{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:900;background:var(--surf);color:var(--ink)}
+.in p{margin:0;font-size:15px;line-height:1.4}
+.in-pr i{background:#f5b301;color:#1a1300}.in-heart i{background:#ff5a5f;color:#fff}.in-split i,.in-trend i{background:var(--acc);color:#fff}.in-zone i{background:var(--info);color:#fff}
+.ibe{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ibe span{flex:1;font-weight:600}.ibe b{font:800 18px Figtree,sans-serif}
+.ibe em{font-style:normal;font-size:12px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--surf2)}
+.ibe em.pr{background:#f5b301;color:#1a1300}.ibe em.r2{background:#c9ced6;color:#111}.ibe em.r3{background:#c98a4b;color:#fff}
+.isp div{display:grid;grid-template-columns:2em minmax(0,1fr) 4.5em;align-items:center;gap:8px;padding:3px 0;font-size:14px}
+.isp i{display:block;height:14px;border-radius:7px;background:var(--surf2);box-shadow:inset 0 0 0 100px var(--info)}
+.isp i.best{box-shadow:inset 0 0 0 100px var(--acc)}
+.isp span{color:var(--dim);font-weight:700}.isp b{text-align:right;font-weight:800}
+.izb{display:flex;height:16px;border-radius:8px;overflow:hidden;gap:2px}
+.izb i{display:block}
+.izl{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:13px;color:var(--dim);font-weight:600}
+.izl b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.shprev{background:repeating-conic-gradient(#d9dbe0 0% 25%, #f3f4f6 0% 50%) 50%/20px 20px;border-radius:14px;overflow:hidden;display:flex;justify-content:center}
+.shprev canvas{display:block;width:auto;max-width:100%;max-height:52vh;height:auto}
 /* sport switch */
 .sportsel{display:flex;gap:4px;background:var(--surf2);border-radius:999px;padding:4px;margin:2px 0 10px}
 .sportsel button{flex:1;min-height:40px;background:transparent;color:var(--dim);font-size:15px}
@@ -1429,6 +1453,7 @@ async function finishRide(){
     wk: WS ? {id:WS.w.id, name:WS.w.name, hard:WS.w.hard, done:WS.done, comp: WS.tot ? Math.round(WS.inT/WS.tot*100) : null} : null,
     sport:S.sport, splits:R.splits||[],
     route: route ? route.name : null, backed:false, trackBacked:false, hasTrack:R.pts.length>0, maxHr:R.maxHr||null};
+  try{ sum.be = bestEfforts(sum, trackSeries(sum, R.pts)); }catch{}
   if(LIVE.on) livePost({end:1});
   const rides = LS.get('rc_rides',[]); rides.unshift(sum); LS.set('rc_rides', rides.slice(0,300));
   const ok = await putTrack(R.start, R.pts);
@@ -1470,8 +1495,9 @@ function openSummary(id){
     <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Moving<b>${fmtT(r.moving)}</b></div>${r.sport==='run'?`<div>Avg pace<b>${paceStr(r.avgSpd)}</b></div>`:`<div>Avg speed<b>${kmhTo(r.avgSpd).toFixed(1)}</b></div>`}
       <div>Avg HR<b>${r.avgHr ?? '--'}</b></div>${r.wk?`<div style="grid-column:1/-1">${r.wk.name}<b>${r.wk.comp!=null?r.wk.comp+'% in target':(r.wk.done?'Completed':'Partly done')}</b></div>`:''}<div>Max HR<b>${r.maxHr ?? '--'}</b></div><div>Climb<b>${Math.round(mTo(r.gain))} ${eU}</b></div></div>
     <p class="note" style="margin:6px 0 0">Saved on this phone. Save GPX keeps a copy in Files (or send it to Strava if your watch didn't record this ride).</p>
-    <div class="mbtns col"><button class="go" id="sGpx">Save GPX</button><button id="sCf">Compare with Garmin (tunes Spoke)</button><button id="sDone">Done</button></div>`);
+    <div class="mbtns col"><button class="go" id="sShare">Share to Instagram</button><button id="sIns">See insights</button><button id="sGpx">Save GPX</button><button id="sCf">Compare with Garmin (tunes Spoke)</button><button id="sDone">Done</button></div>`);
   getTrack(id).then(t=>{ const el=$('sumth'); if(el && t) el.innerHTML=thumbSvg(t); }).catch(()=>{});
+  $('sShare').onclick=()=>openShare(id); $('sIns').onclick=()=>openActivity(id);
   $('sGpx').onclick=()=>exportGpx(id); $('sCf').onclick=()=>openConfirm(id); $('sDone').onclick=closeModal;
 }
 function openConfirm(id){
@@ -1614,6 +1640,191 @@ $('bkRestore').onclick=async()=>{
 window.addEventListener('online', ()=>backupPending());
 setTimeout(()=>backupPending(), 4000);
 
+/* ---------- insights ---------- */
+const RUN_BE = [[1609.344,'Mile'],[5000,'5K'],[10000,'10K'],[21097.5,'Half marathon']];
+const RIDE_BE = [[10000,'10 km'],[20000,'20 km'],[40000,'40 km'],[80467,'50 mi']];
+function trackSeries(r, pts){
+  const P=(pts||[]).filter(p=>p.lat!=null);
+  const d=[0], m=[0], hr=[], ele=[];
+  for(let i=1;i<P.length;i++){
+    const dt=Math.min(5, Math.max(0,(P[i].t-P[i-1].t)/1000));
+    let dd=hav(P[i-1].lat,P[i-1].lon,P[i].lat,P[i].lon); if(dt>0 && dd/dt > (r.sport==='run'?9:30)) dd=0;  // drop GPS jumps
+    d.push(d[i-1]+dd); m.push(m[i-1]+dt);
+  }
+  const k = d[d.length-1]>0 && r.dist>0 ? r.dist*1000/d[d.length-1] : 1;   // match the calibrated distance
+  for(let i=0;i<d.length;i++) d[i]*=k;
+  return {P, d, m};
+}
+function bestEfforts(r, S0){
+  const {d, m}=S0, out={}, list = r.sport==='run' ? RUN_BE : RIDE_BE;
+  for(const [D] of list){
+    if(d[d.length-1] < D) continue;
+    let best=Infinity, i=0;
+    for(let j=0;j<d.length;j++){ while(i<j && d[j]-d[i+1] >= D) i++; if(d[j]-d[i]>=D){ const t=(m[j]-m[i]) * D/(d[j]-d[i]); if(t<best) best=t; } }
+    if(isFinite(best)) out[D]=Math.round(best);
+  }
+  return out;
+}
+function zoneTimes(S0){
+  const z=[0,0,0,0,0]; const {P}=S0;
+  for(let i=1;i<P.length;i++){ const h=P[i].hr; if(!h) continue; const dt=Math.min(5,(P[i].t-P[i-1].t)/1000); const p=h/S.maxhr; z[p<.6?0:p<.7?1:p<.8?2:p<.9?3:4]+=dt; }
+  return z;
+}
+function effortScore(S0){
+  const {P}=S0, rest=60; let tr=0, n=0;
+  for(let i=1;i<P.length;i++){ const h=P[i].hr; if(!h) continue; n++; const dt=Math.min(5,(P[i].t-P[i-1].t)/1000)/60; const x=Math.max(0,Math.min(1,(h-rest)/(S.maxhr-rest))); tr+=dt*x*0.64*Math.exp(1.92*x); }
+  return n>60 ? Math.round(tr) : null;
+}
+function halves(S0){
+  const {P,d,m}=S0, L=d[d.length-1]; if(L<800 || P.length<60) return null;
+  let i=0; while(i<d.length-1 && d[i]<L/2) i++;
+  const s1=(d[i])/(m[i]||1), s2=(L-d[i])/((m[m.length-1]-m[i])||1);
+  const hrAvg=(a,b)=>{ let s=0,c=0; for(let k=a;k<b;k++) if(P[k].hr){ s+=P[k].hr; c++; } return c>30?s/c:null; };
+  const h1=hrAvg(0,i), h2=hrAvg(i,P.length);
+  return {s1, s2, h1, h2, dec: (h1&&h2) ? ((h2/s2)/(h1/s1)-1)*100 : null};
+}
+const fmtDur = t => { t=Math.round(t); const h=Math.floor(t/3600), mi=Math.floor(t%3600/60), s=t%60; return h ? `${h}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${mi}:${String(s).padStart(2,'0')}`; };
+async function ensureBE(rides){
+  let changed=false;
+  for(const x of rides){ if(x.be || !x.hasTrack) continue; try{ const t=await getTrack(x.id); if(t){ x.be=bestEfforts(x, trackSeries(x,t)); changed=true; } }catch{} }
+  if(changed){ const all=LS.get('rc_rides',[]); for(const x of rides){ const y=all.find(z=>z.id===x.id); if(y && x.be) y.be=x.be; } LS.set('rc_rides', all); }
+}
+async function buildInsights(id){
+  const rides=LS.get('rc_rides',[]), r=rides.find(x=>x.id===id); if(!r) return null;
+  const pts=await getTrack(id).catch(()=>null), S0=trackSeries(r, pts||[]);
+  const same=rides.filter(x=>(x.sport||'ride')===(r.sport||'ride'));
+  await ensureBE(same);
+  const be = r.be || (pts ? bestEfforts(r,S0) : {});
+  const zones=pts?zoneTimes(S0):[0,0,0,0,0], effort=pts?effortScore(S0):null, hv=pts?halves(S0):null;
+  const isR=r.sport==='run', list=isR?RUN_BE:RIDE_BE, notes=[], prs=[];
+  // PRs: compare with activities before this one
+  for(const [D,label] of list){ if(!be[D]) continue;
+    const prev=same.filter(x=>x.id<r.id && x.be && x.be[D]).map(x=>x.be[D]);
+    const all=same.filter(x=>x.be && x.be[D]).map(x=>x.be[D]).sort((a,b)=>a-b);
+    const rank=all.indexOf(be[D])+1;
+    prs.push({D, label, t:be[D], rank, n:all.length, pr: prev.length ? be[D] < Math.min(...prev) : false, first: !prev.length, gain: prev.length ? Math.min(...prev)-be[D] : 0}); }
+  const newPr=prs.filter(p=>p.pr).sort((a,b)=>b.D-a.D)[0];
+  if(newPr) notes.push(['pr', `New PR: fastest ${newPr.label}, ${fmtDur(newPr.t)}, ${fmtDur(newPr.gain)} faster than your previous best.`]);
+  else { const top=prs.filter(p=>p.rank===2 && p.n>=3)[0]; if(top) notes.push(['pr', `Your 2nd fastest ${top.label} ever: ${fmtDur(top.t)}.`]); }
+  const spd = v => isR ? `${paceStr(v*3.6)} ${paceU()}` : `${kmhTo(v*3.6).toFixed(1)} ${imp()?'mph':'km/h'}`;
+  if(hv){ const diff = isR ? (3600/kmhTo(hv.s2*3.6) - 3600/kmhTo(hv.s1*3.6)) : kmhTo((hv.s2-hv.s1)*3.6);
+    if(isR){ if(diff < -3) notes.push(['split', `Negative split: your second half was ${Math.round(-diff)} s${paceU()} faster. Well paced.`]);
+      else if(diff > 10) notes.push(['split', `You slowed by ${Math.round(diff)} s${paceU()} in the second half. Start a little easier next time.`]);
+      else notes.push(['split', 'Even pacing: both halves within a few seconds per '+(imp()?'mile':'km')+'.']); }
+    else { if(diff > 0.5) notes.push(['split', `Strong finish: second half ${diff.toFixed(1)} ${imp()?'mph':'km/h'} faster.`]); else if(diff < -1.5) notes.push(['split', `You faded ${(-diff).toFixed(1)} ${imp()?'mph':'km/h'} in the second half. Fuel earlier or start easier.`]); }
+    if(hv.dec!=null && r.moving>=2400){ notes.push(['heart', hv.dec < 5 ? `Heart rate stayed steady against ${isR?'pace':'speed'} (${hv.dec.toFixed(1)}% drift): solid aerobic endurance.` : `Heart rate drifted ${hv.dec.toFixed(0)}% higher at the same ${isR?'pace':'speed'}: heat, hydration or fatigue. Normal on long efforts, worth watching.`]); } }
+  const zt=zones.reduce((a,b)=>a+b,0);
+  if(zt>300){ const z=zones.map(x=>x/zt), main=z.indexOf(Math.max(...z));
+    if(z[0]+z[1] > .75) notes.push(['zone', `${Math.round((z[0]+z[1])*100)}% of the time in zones 1–2: a true easy ${isR?'run':'ride'}.`]);
+    else if(z[3]+z[4] > .4) notes.push(['zone', `${Math.round((z[3]+z[4])*100)}% in zones 4–5: a hard session. Keep tomorrow easy.`]);
+    else notes.push(['zone', `Most of your time was in zone ${main+1}.`]); }
+  if(r.wk && r.wk.comp!=null) notes.push(['wk', `${r.wk.name}: ${r.wk.comp}% of the time on target.`]);
+  // trend: last 4 vs previous 4 of the same sport (by average speed)
+  const hist=same.filter(x=>x.id<=r.id && x.moving>300).slice(0,8);
+  if(hist.length>=6){ const a=hist.slice(0,4), b=hist.slice(4); const av=arr=>arr.reduce((s,x)=>s+x.avgSpd,0)/arr.length, va=av(a), vb=av(b);
+    if(isR){ const d=3600/kmhTo(vb)-3600/kmhTo(va); notes.push(['trend', `Last 4 runs average ${paceStr(va)} ${paceU()}, ${Math.abs(Math.round(d))} s ${d>=0?'faster':'slower'} than the 4 before.`]); }
+    else { const d=kmhTo(va-vb); notes.push(['trend', `Last 4 rides average ${kmhTo(va).toFixed(1)} ${imp()?'mph':'km/h'}, ${Math.abs(d).toFixed(1)} ${d>=0?'faster':'slower'} than the 4 before.`]); } }
+  if(!pts) notes.push(['info', 'No GPS track saved for this activity, so detailed insights are limited.']);
+  else if(!zt) notes.push(['info', 'Pair your watch for heart-rate zones, effort and drift insights.']);
+  const splits = isR && r.splits && r.splits.length ? r.splits.map(x=>x.s) : (()=>{ const u=(imp()?1609.344:1000)*(isR?1:5), out=[]; let last=0, lm=0; for(let i=0;i<S0.d.length;i++){ if(S0.d[i]-last>=u){ out.push(S0.m[i]-lm); last+=u; lm=S0.m[i]; } } return out; })();
+  return {r, pts, be, prs, zones, effort, hv, notes, splits, splitUnit: isR ? (imp()?'mi':'km') : (imp()?'5 mi':'5 km')};
+}
+const effortLabel = e => e==null ? '' : e<25?'Easy':e<75?'Moderate':e<150?'Hard':'Very hard';
+async function openActivity(id){
+  openModal('<h3>Loading…</h3>');
+  const I=await buildInsights(id); if(!I){ closeModal(); return; }
+  const r=I.r, isR=r.sport==='run', dU=imp()?'mi':'km', eU=imp()?'ft':'m';
+  const esc5=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const icon={pr:'★', split:'⇄', heart:'♥', zone:'◔', wk:'✓', trend:'↗', info:'i'};
+  const zt=I.zones.reduce((a,b)=>a+b,0);
+  const zoneBar = zt ? `<div class="izb">${I.zones.map((t,k)=>t?`<i style="flex:${t};background:${ZC[k+1]}" title="Zone ${k+1}"></i>`:'').join('')}</div><div class="izl">${I.zones.map((t,k)=>`<span><b style="background:${ZC[k+1]}"></b>Z${k+1} ${fmtDur(t)}</span>`).join('')}</div>` : '<p class="note">No heart rate recorded.</p>';
+  const sp=I.splits, sMin=Math.min(...sp), sMax=Math.max(...sp);
+  const splitBars = sp.length ? `<div class="isp">${sp.map((t,k)=>`<div><span>${k+1}</span><i style="width:${(30+70*(sMax===sMin?1:(sMax-t)/(sMax-sMin))).toFixed(0)}%" class="${t===sMin?'best':''}"></i><b>${fmtDur(t)}</b></div>`).join('')}</div>` : '<p class="note">Not long enough for splits.</p>';
+  const beRows = I.prs.length ? I.prs.map(p=>`<div class="ibe"><span>${p.label}</span><b>${fmtDur(p.t)}</b>${p.pr?'<em class="pr">PR</em>':p.first?'<em>First</em>':p.rank<=3&&p.n>=3?`<em class="r${p.rank}">${p.rank===2?'2nd':'3rd'}</em>`:''}</div>`).join('') : '<p class="note">Go longer for best efforts.</p>';
+  openModal(`<div class="iah"><h3>${esc5(rideTitle(r))}</h3><span>${new Date(r.id).toLocaleDateString([], {weekday:'long', month:'short', day:'numeric'})}, ${new Date(r.id).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</span></div>
+    <div class="athumb" id="ith" style="margin:10px -16px"></div>
+    <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>${isR?'Pace':'Avg speed'}<b>${isR?paceStr(r.avgSpd):kmhTo(r.avgSpd).toFixed(1)}</b></div><div>Time<b>${fmtT(r.moving)}</b></div>
+      <div>Elev gain<b>${Math.round(mTo(r.gain))} ${eU}</b></div><div>Avg HR<b>${r.avgHr ?? '--'}</b></div><div>Effort<b>${I.effort ?? '--'}</b>${I.effort!=null?`<small>${effortLabel(I.effort)}</small>`:''}</div></div>
+    <h4 class="ih">Insights</h4><div class="ins">${I.notes.map(([k,t])=>`<div class="in in-${k}"><i>${icon[k]||'•'}</i><p>${esc5(t)}</p></div>`).join('')}</div>
+    <h4 class="ih">Best efforts</h4>${beRows}
+    <h4 class="ih">Splits (${I.splitUnit})</h4>${splitBars}
+    <h4 class="ih">Heart-rate zones</h4>${zoneBar}
+    <div class="mbtns col" style="margin-top:16px"><button class="go" id="aShare">Share to Instagram</button>${r.garmin?'':'<button id="aCf">Compare with Garmin</button>'}<button id="aGpx">Save GPX</button><button id="aClose">Close</button></div>`);
+  if(I.pts) $('ith').innerHTML=thumbSvg(I.pts);
+  $('aShare').onclick=()=>openShare(id); $('aGpx').onclick=()=>exportGpx(id); $('aClose').onclick=closeModal; if($('aCf')) $('aCf').onclick=()=>openConfirm(id);
+}
+
+/* ---------- share images (Instagram via the share sheet) ---------- */
+const SH = {tpl:'photo', size:'story', img:null};
+async function openShare(id){
+  const r=LS.get('rc_rides',[]).find(x=>x.id===id); if(!r) return;
+  const pts=await getTrack(id).catch(()=>null);
+  openModal(`<h3>Share</h3>
+    <div class="sportsel" id="shTpl"><button data-t="photo">Photo</button><button data-t="map">Map</button><button data-t="sticker">Sticker</button></div>
+    <div class="sportsel" id="shSize"><button data-s="story">Story</button><button data-s="post">Post</button></div>
+    <label class="filebtn" id="shPick" style="margin-bottom:10px">Choose a photo<input type="file" id="shFile" accept="image/*"></label>
+    <div class="shprev"><canvas id="shCv"></canvas></div>
+    <p class="note" style="margin:8px 0 0">Tap Share, then pick Instagram and choose Story or Feed. Sticker is a see-through image: add it to an Instagram Story on top of any photo.</p>
+    <div class="mbtns"><button id="shSave">Save image</button><button class="go" id="shGo">Share</button></div>`);
+  const draw=async()=>{
+    document.querySelectorAll('#shTpl button').forEach(b=>b.classList.toggle('on', b.dataset.t===SH.tpl));
+    document.querySelectorAll('#shSize button').forEach(b=>b.classList.toggle('on', b.dataset.s===SH.size));
+    $('shPick').style.display = SH.tpl==='photo' ? '' : 'none';
+    $('shPick').firstChild.textContent = SH.img ? 'Change photo' : 'Choose a photo';
+    await drawShare($('shCv'), r, pts||[]);
+  };
+  $('shTpl').onclick=e=>{ const b=e.target.closest('button'); if(b){ SH.tpl=b.dataset.t; draw(); } };
+  $('shSize').onclick=e=>{ const b=e.target.closest('button'); if(b){ SH.size=b.dataset.s; draw(); } };
+  $('shFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ SH.img=im; draw(); }; im.src=URL.createObjectURL(f); };
+  const file=()=>new Promise(res=>$('shCv').toBlob(b=>res(new File([b], `spoke-${r.sport||'ride'}-${new Date(r.id).toISOString().slice(0,10)}.png`, {type:'image/png'})), 'image/png'));
+  $('shGo').onclick=async()=>{ const f=await file();
+    try{ if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({files:[f]}); return; } }catch(e){ if(e.name==='AbortError') return; }
+    dl(f); toast('Image saved. Open Instagram and add it from your photos.'); };
+  $('shSave').onclick=async()=>{ dl(await file()); toast('Image saved'); };
+  const dl=f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); };
+  draw();
+}
+async function drawShare(cv, r, pts){
+  try{ await document.fonts.load('900 80px Figtree'); await document.fonts.load('700 40px Figtree'); }catch{}
+  const W=1080, H=SH.size==='story'?1920:1350, tpl=SH.tpl, isR=r.sport==='run';
+  cv.width=W; cv.height=H; const g=cv.getContext('2d'); g.clearRect(0,0,W,H);
+  const F=(w,s)=>`${w} ${s}px Figtree, system-ui, sans-serif`;
+  if(tpl==='photo'){
+    if(SH.img){ const im=SH.img, sc=Math.max(W/im.width, H/im.height), iw=im.width*sc, ih=im.height*sc; g.drawImage(im,(W-iw)/2,(H-ih)/2,iw,ih); }
+    else { const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,'#2a2f3a'); gr.addColorStop(1,'#12141a'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+      g.fillStyle='rgba(255,255,255,.55)'; g.font=F(700,44); g.textAlign='center'; g.fillText('Choose a photo', W/2, H*0.45); g.textAlign='left'; }
+    const sh=g.createLinearGradient(0,H*0.45,0,H); sh.addColorStop(0,'rgba(0,0,0,0)'); sh.addColorStop(1,'rgba(0,0,0,.78)'); g.fillStyle=sh; g.fillRect(0,H*0.45,W,H*0.55);
+  } else if(tpl==='map'){
+    const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#1c1f26'); gr.addColorStop(1,'#101216'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  }
+  // route
+  const P=pts.filter(p=>p.lat!=null);
+  if(P.length>1){
+    const box = tpl==='map' ? [90, H*0.14, W-180, H*0.52] : tpl==='sticker' ? [140, H*0.18, W-280, H*0.42] : [90, H*0.08, W*0.42, H*0.26];
+    const k=Math.cos(P[0].lat*Math.PI/180); let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    const Q=P.map(p=>{ const x=p.lon*k, y=-p.lat; x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); return [x,y]; });
+    const sc=Math.min(box[2]/Math.max(1e-9,x1-x0), box[3]/Math.max(1e-9,y1-y0)), ox=box[0]+(box[2]-(x1-x0)*sc)/2, oy=box[1]+(box[3]-(y1-y0)*sc)/2;
+    const step=Math.max(1,Math.floor(Q.length/600));
+    const path=()=>{ g.beginPath(); for(let i=0;i<Q.length;i+=step){ const X=ox+(Q[i][0]-x0)*sc, Y=oy+(Q[i][1]-y0)*sc; i?g.lineTo(X,Y):g.moveTo(X,Y); } };
+    g.lineJoin='round'; g.lineCap='round';
+    g.save(); g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=18; path(); g.strokeStyle= tpl==='map' ? '#ff7a1a' : '#ffffff'; g.lineWidth= tpl==='map' ? 12 : 10; g.stroke(); g.restore();
+  }
+  // text
+  const white = '#ffffff', dim='rgba(255,255,255,.78)';
+  g.save(); if(tpl!=='map'){ g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=14; }
+  const stats = [['Distance', `${kmTo(r.dist).toFixed(2)} ${imp()?'mi':'km'}`], [isR?'Pace':'Avg speed', isR?`${paceStr(r.avgSpd)} ${paceU()}`:`${kmhTo(r.avgSpd).toFixed(1)} ${imp()?'mph':'km/h'}`], ['Time', fmtT(r.moving)]];
+  if(r.gain>15) stats.push(['Elev gain', `${Math.round(mTo(r.gain))} ${imp()?'ft':'m'}`]);
+  const top = tpl==='map' ? H*0.72 : tpl==='sticker' ? H*0.66 : H*(SH.size==='story'?0.66:0.58);
+  g.fillStyle=white; g.font=F(900,64); g.fillText(rideTitle(r), 90, top);
+  g.fillStyle=dim; g.font=F(600,34); g.fillText(new Date(r.id).toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'}), 90, top+54);
+  const colW=(W-180)/2;
+  stats.forEach(([k,v],i)=>{ const x=90+(i%2)*colW, y=top+150+Math.floor(i/2)*150;
+    g.fillStyle=dim; g.font=F(700,32); g.fillText(k, x, y);
+    g.fillStyle=white; g.font=F(900,76); g.fillText(v, x, y+76); });
+  g.fillStyle=white; g.font=F(900,40); g.textAlign='right'; g.fillText('Spoke', W-90, H-80); g.textAlign='left';
+  g.restore();
+}
+
 /* ---------- history + GPX ---------- */
 const rideTitle = r => { if(r.wk) return r.wk.name; const h=new Date(r.id).getHours(); return (h<5?'Night':h<11?'Morning':h<17?'Afternoon':h<21?'Evening':'Night')+(r.sport==='run'?' run':' ride'); };
 function thumbSvg(pts){
@@ -1637,15 +1848,15 @@ function renderHist(){
   const esc4=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   $('hist').innerHTML = rides.slice(0,60).map(r=>{
     const d=new Date(r.id), id=Number(r.id);
-    return `<div class="act"><div class="ah"><b>${esc4(rideTitle(r))}</b><span>${d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})} at ${d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}${r.route?', '+esc4(r.route):''}</span></div>
+    return `<div class="act" data-id="${id}"><div class="ah"><b>${esc4(rideTitle(r))}</b><span>${d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})} at ${d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}${r.route?', '+esc4(r.route):''}</span></div>
       <div class="athumb" id="th-${id}"></div>
       <div class="as"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div>${r.sport==='run'?`<div>Pace<b>${paceStr(r.avgSpd)} ${paceU()}</b></div>`:`<div>Elev gain<b>${Math.round(mTo(r.gain))} ${eU}</b></div>`}<div>Time<b>${fmtT(r.moving)}</b></div></div>
       <div class="chips">${r.avgHr?`<span class="chip">Avg HR ${Number(r.avgHr)}</span>`:''}${r.sport==='run'?`<span class="chip">${Math.round(mTo(r.gain))} ${eU} climb</span>`:`<span class="chip">${kmhTo(r.avgSpd).toFixed(1)} ${imp()?'mph':'km/h'} avg</span>`}${r.avgPw?`<span class="chip">${Number(r.avgPw)} W avg</span>`:''}${r.wk&&r.wk.comp!=null?`<span class="chip wk">${Number(r.wk.comp)}% in target</span>`:''}${r.garmin?`<span class="chip ok">Garmin checked${r.garminRes&&r.garminRes.distErr!=null?' '+pct(r.garminRes.distErr):''}</span>`:''}</div>
-      <div class="rb">${r.garmin?'':`<button data-cf="${id}">Compare with Garmin</button>`}${(r.hasTrack||(r.trackBacked&&bkReady()))?`<button data-gpx="${id}">Save GPX</button>`:''}</div></div>`;
+      <div class="rb"><button data-sh="${id}" class="go">Share</button>${r.garmin?'':`<button data-cf="${id}">Compare with Garmin</button>`}${(r.hasTrack||(r.trackBacked&&bkReady()))?`<button data-gpx="${id}">Save GPX</button>`:''}</div></div>`;
   }).join('');
   (async()=>{ for(const r of rides.slice(0,30)){ if(!r.hasTrack) continue; const el=$('th-'+Number(r.id)); if(!el) continue; try{ const t=await getTrack(r.id); if(t) el.innerHTML=thumbSvg(t); }catch{} } })();
 }
-$('hist').addEventListener('click', e=>{ const d=e.target.dataset||{}; if(d.gpx) exportGpx(+d.gpx); else if(d.cf) openConfirm(+d.cf); });
+$('hist').addEventListener('click', e=>{ const d=e.target.dataset||{}; if(d.gpx) exportGpx(+d.gpx); else if(d.cf) openConfirm(+d.cf); else if(d.sh) openShare(+d.sh); else { const a=e.target.closest('.act[data-id]'); if(a) openActivity(+a.dataset.id); } });
 async function exportGpx(id){
   let pts=(await getTrack(id))||[];
   if(!pts.length && bkReady()){ try{ const j=await getJson(`tracks/${id}.json`); pts=j.pts.map(a=>({t:a[0],lat:a[1],lon:a[2],ele:a[3],hr:a[4],pw:a[5],cad:a[6]})); }catch(e){ toast(e.message); return; } }
