@@ -42,7 +42,7 @@ main{flex:1;position:relative;min-height:300px}
 <div class="sos" id="sos" role="alert"></div>
 <main><div id="map"></div><div class="msg" id="msg">Waiting for the rider's first update…</div></main>
 <div class="stats">
-  <div>Speed<b class="num" id="sSpd">--</b></div>
+  <div><span id="sSpdL">Speed</span><b class="num" id="sSpd">--</b></div>
   <div>Heart rate<b class="num" id="sHr">--</b></div>
   <div>Distance<b class="num" id="sDist">--</b></div>
   <div>Moving<b class="num" id="sMov">--</b></div>
@@ -69,9 +69,12 @@ function apply(p){
 function render(){
   if(!last){ return; }
   const imp=last.u!=='met';
-  $('who').textContent = (last.n ? last.n+"'s ride" : 'Live ride') + (last.r ? ' · '+last.r : '');
+  const run = last.sp==='run';
+  $('who').textContent = (last.n ? last.n+"'s "+(run?'run':'ride') : (run?'Live run':'Live ride')) + (last.r ? ', '+last.r : '');
   document.title = (last.sos?'SOS · ':'')+$('who').textContent;
-  $('sSpd').textContent = last.s!=null ? (imp?last.s*0.621371:last.s).toFixed(1) : '--';
+  $('sSpdL').textContent = run ? 'Pace' : 'Speed';
+  if(run){ const v=last.s!=null?(imp?last.s*0.621371:last.s):0; if(v>1.2){ const t=Math.round(3600/v); $('sSpd').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0')+(imp?'/mi':'/km'); } else $('sSpd').textContent='--'; }
+  else $('sSpd').textContent = last.s!=null ? (imp?last.s*0.621371:last.s).toFixed(1) : '--';
   $('sHr').textContent = last.h ?? '--';
   $('sDist').textContent = last.d!=null ? (imp?last.d*0.621371:last.d).toFixed(1)+(imp?' mi':' km') : '--';
   $('sMov').textContent = fmtT(last.m);

@@ -297,6 +297,12 @@ input,select{background:var(--surf2);border:0;border-radius:10px;font-family:Fig
 .lapban .g b{font-weight:900}
 .rowbtn{display:flex;width:100%;justify-content:space-between;align-items:center;background:var(--surf);border-radius:var(--r);padding:16px;min-height:56px;font-size:16px;box-shadow:var(--sh);margin-bottom:10px}
 .rowbtn span{color:var(--dim);font-weight:600}
+/* sport switch */
+.sportsel{display:flex;gap:4px;background:var(--surf2);border-radius:999px;padding:4px;margin:2px 0 10px}
+.sportsel button{flex:1;min-height:40px;background:transparent;color:var(--dim);font-size:15px}
+.sportsel button.on{background:var(--surf);color:var(--ink);box-shadow:var(--sh)}
+body.recording #v-ride .sportsel{display:none}
+.wkly em{display:block;font-style:normal;font-size:13px;color:var(--dim);font-weight:700;margin-top:2px}
 /* activities */
 .wkly{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--surf);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);margin-bottom:12px}
 .wkly div{font-size:12px;color:var(--dim);font-weight:700}.wkly b{display:block;font:900 26px/1.1 Figtree,sans-serif;color:var(--ink);letter-spacing:-.02em}
@@ -363,12 +369,13 @@ input,select{background:var(--surf2);border:0;border-radius:10px;font-family:Fig
 <div class="err" id="err"></div>
 
 <section class="view on" id="v-ride">
+  <div class="sportsel" role="radiogroup" aria-label="Activity type"><button data-sp="ride">Ride</button><button data-sp="run">Run</button></div>
   <div class="navban" id="navRide"></div>
   <div class="climb" id="climbRide"></div>
   <div class="wkp" id="wkRide"></div>
   <div class="pages" id="pages">
     <div class="page p1">
-      <div class="f w big"><div class="l"><span>Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small class="uSpd">mph</small></div></div></div>
+      <div class="f w big"><div class="l"><span id="spdL">Speed</span><span id="spdSrc">GPS</span></div><div class="vb"><div class="v num"><span id="spd">0.0</span><small id="spdU">mph</small></div></div></div>
       <div class="f w mid" id="hrTile"><div class="l"><span>Heart rate</span><span class="zone" id="hrZ"></span></div><div class="vb"><div class="v num"><span id="hr">--</span><small>bpm</small></div></div><div class="bar" id="hrBar"></div></div>
       <div class="f"><div class="l"><span>Distance</span></div><div class="vb"><div class="v num"><span id="dist">0.00</span><small class="uDist">mi</small></div></div></div>
       <div class="f"><div class="l"><span id="aL">Avg speed</span><span class="zone" id="pwZ"></span></div><div class="vb"><div class="v num"><span id="aV">0.0</span><small id="aU">mph</small></div></div><div class="bar" id="pwBar"></div></div>
@@ -439,12 +446,13 @@ input,select{background:var(--surf2);border:0;border-radius:10px;font-family:Fig
 
 <section class="view" id="v-wk">
   <h2>Workouts</h2>
+  <div class="sportsel" role="radiogroup" aria-label="Activity type"><button data-sp="ride">Ride</button><button data-sp="run">Run</button></div>
   <div id="wkSel"></div>
   <h3 class="wkcat">Coach</h3>
   <div class="coach">
     <label class="row">Time today<select id="cTime"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours +</option></select></label>
     <label class="row">How you feel<select id="cFeel"><option value="fresh">Fresh</option><option value="normal" selected>Normal</option><option value="tired">Tired or sore</option></select></label>
-    <label class="row">Goal<select id="cGoal"><option value="base">Build endurance</option><option value="faster">Get faster</option><option value="climb">Climb better</option><option value="recover">Recover</option></select></label>
+    <label class="row">Goal<select id="cGoal"><option value="base">Build endurance</option><option value="faster">Get faster</option><option value="climb">Get better on hills</option><option value="recover">Recover</option></select></label>
     <div class="mbtns"><button class="go" id="coachGo">Pick today's workout</button></div>
     <div id="coachOut"></div>
     <p class="note" style="margin:10px 0 0">The coach follows standard training rules and your last 7 days of Spoke rides: no back-to-back hard days, easy after a hard block, intervals when you're rested. Targets use your max heart rate from Settings.</p>
@@ -464,6 +472,7 @@ input,select{background:var(--surf2);border:0;border-radius:10px;font-family:Fig
   <div class="card sens"><div class="meta"><b>Heart rate</b><span id="nHr">Vivoactive, other Garmin watch or chest strap</span></div><div class="val num" id="sHr">--</div><button id="bHr">Pair</button></div>
   <div class="card sens"><div class="meta"><b>Power meter</b><span id="nPw">Pedals, crank or smart trainer</span></div><div class="val num" id="sPw">--</div><button id="bPw">Pair</button></div>
   <div class="card sens"><div class="meta"><b>Speed / cadence</b><span id="nCsc">Wheel or crank sensor</span></div><div class="val num" id="sCsc">--</div><button id="bCsc">Pair</button></div>
+  <div class="card sens"><div class="meta"><b>Running cadence</b><span id="nRsc">HRM-Pro, HRM-Run or foot pod</span></div><div class="val num" id="sRsc">--</div><button id="bRsc">Pair</button></div>
   <p class="note" id="btNote">Vivoactive 5/6: Settings, Health &amp; Wellness, Wrist Heart Rate, Broadcast Heart Rate (or set Broadcast Heart Rate in the Bike activity settings so it turns on when you start a ride). Then tap Pair above and pick your watch. Only heart rate comes from the watch; the phone supplies GPS speed and distance. Power meters and speed/cadence sensors pair here directly.</p>
 </section>
 
@@ -543,15 +552,19 @@ const IDB = (()=>{ let pr=null;
 const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 
 /* ---------- settings ---------- */
-const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1,voice:1,sat:0}, LS.get('rc_settings',{}));
+const S = Object.assign({units:'imp',ftp:200,maxhr:185,wheel:2105,ap:2,autolock:1,sun:0,mstyle:'auto',snd:1,voice:1,sat:0,sport:'ride'}, LS.get('rc_settings',{}));
 const saveS = () => LS.set('rc_settings', S);
 for (const k of ['units','ftp','maxhr','wheel','ap','autolock','sun','mstyle','snd','voice']) {
   $(k).value = S[k];
   $(k).addEventListener('change', e => { S[k] = (k==='units'||k==='mstyle') ? e.target.value : +e.target.value; saveS(); applyUnits(); applySun(); if(k==='mstyle'||k==='sun') applyMapStyle(); render(); });
 }
-const CAL0 = {kGps:1, kWheel:1, eleTh:3, apScale:1, n:0, hist:[]};
+const CAL0 = {kGps:1, kWheel:1, kRun:1, eleTh:3, apScale:1, n:0, hist:[]};
 let CAL = Object.assign(JSON.parse(JSON.stringify(CAL0)), LS.get('rc_cal',{}));
 const imp = () => S.units === 'imp';
+const isRun = () => S.sport==='run';
+const paceStr = kmh => { const v=imp()? kmh*0.621371 : kmh; if(!(v>1.2)) return '--:--'; const t=Math.round(3600/v); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); };
+const paceU = () => imp()?'/mi':'/km';
+const avgArr = a => a && a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
 const kmhTo = v => imp() ? v*0.621371 : v;
 const kmTo = v => imp() ? v*0.621371 : v;
 const mTo = v => imp() ? v*3.28084 : v;
@@ -611,7 +624,7 @@ else navigator.geolocation.watchPosition(p=>{
     if(live.gpsSpd==null || stale) sbuf=[];
     const out = (live.gpsSpd==null || stale) ? null : live.gpsSpd, dt = lastFix ? Math.min(3, Math.max(0.5,(p.timestamp-lastFix.t)/1000)) : 1;
     let acc = v;
-    if(v>110) acc = out ?? 0;
+    if(v>(isRun()?30:110)) acc = out ?? 0;
     else if(out!=null && v-out > 20*dt){
       let v2=null; if(fixes.length===3){ const d2=(fixes[2].t-fixes[0].t)/1000; if(d2>0) v2=hav(fixes[0].lat,fixes[0].lon,fixes[2].lat,fixes[2].lon)/d2*3.6; }
       acc = (v2!=null && Math.abs(v2-v)<12) ? v : out;
@@ -640,14 +653,15 @@ if(navigator.getBattery){
 /* ---------- Bluetooth ---------- */
 const hasBT = !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
 if(!hasBT){
-  ['bHr','bPw','bCsc'].forEach(id=>$(id).disabled=true);
+  ['bHr','bPw','bCsc','bRsc'].forEach(id=>$(id).disabled=true);
   $('btNote').textContent = 'This browser cannot use Bluetooth sensors. On Android use Chrome. On iPhone, Safari and Chrome block Web Bluetooth: open this page in the free Bluefy browser from the App Store. GPS works everywhere.';
 }
 async function pair(kind){
   const cfg = {
     hr:{svc:'heart_rate', ch:'heart_rate_measurement', name:'nHr', fn:onHr},
     pw:{svc:'cycling_power', ch:'cycling_power_measurement', name:'nPw', fn:onPw},
-    csc:{svc:'cycling_speed_and_cadence', ch:'csc_measurement', name:'nCsc', fn:onCsc}
+    csc:{svc:'cycling_speed_and_cadence', ch:'csc_measurement', name:'nCsc', fn:onCsc},
+    rsc:{svc:'running_speed_and_cadence', ch:'rsc_measurement', name:'nRsc', fn:onRsc}
   }[kind];
   try{
     const dev = await navigator.bluetooth.requestDevice({filters:[{services:[cfg.svc]}]});
@@ -668,8 +682,10 @@ async function pair(kind){
     toast((dev.name||'Sensor')+' paired');
   }catch(e){ if(e.name!=='NotFoundError') toast('Pairing failed: '+e.message); }
 }
+$('bRsc').onclick=()=>pair('rsc');
 $('bHr').onclick=()=>pair('hr'); $('bPw').onclick=()=>pair('pw'); $('bCsc').onclick=()=>pair('csc');
 
+function onRsc(dv){ if(dv.byteLength<4) return; const c=dv.getUint8(3); live.cad = c<130 ? c*2 : c; live.lastCadT=Date.now(); live.lastRscT=Date.now(); }
 function onHr(dv){ const f=dv.getUint8(0); live.hr = (f&1) ? dv.getUint16(1,true) : dv.getUint8(1); live.lastHrT=Date.now(); }
 const crank = {pw:null, csc:null}, wheel = {last:null};
 function cadFrom(key, revs, time){
@@ -701,7 +717,7 @@ function curSpeed(){
   if(live.csSpd!=null && fresh(live.lastCscT,3000)){ raw=live.csSpd; src='Wheel'; }
   else if(live.csSpd!=null && fresh(live.lastCscT,8000)){ raw=0; src='Wheel'; }
   else if(live.gpsSpd!=null && fresh(live.lastGpsT,5000)){ raw=live.gpsSpd; src='GPS'; }
-  return {v: raw*(src==='Wheel'?CAL.kWheel:CAL.kGps), raw, src};
+  return {v: raw*(src==='Wheel'?CAL.kWheel:(isRun()?(CAL.kRun||1):CAL.kGps)), raw, src};
 }
 let stillFor = 0;
 setInterval(()=>{
@@ -714,7 +730,7 @@ setInterval(()=>{
   const sp = curSpeed();
   if(state==='rec' && R){
     R.elapsed++;
-    const apKmh = (S.ap ? (imp()? S.ap*1.609 : (S.ap===2?3:5)) : 0) * CAL.apScale;
+    const apKmh = (S.ap ? (isRun() ? 2 : (imp()? S.ap*1.609 : (S.ap===2?3:5))) : 0) * CAL.apScale;
     stillFor = sp.v < Math.max(apKmh,0.5) ? stillFor+1 : 0;
     const moving = !S.ap || stillFor < 3;
     if(moving){
@@ -728,6 +744,7 @@ setInterval(()=>{
         if(R.np30.length===30){ const a=R.np30.reduce((x,y)=>x+y,0)/30; R.np4Sum+=a**4; R.np4N++; } }
     }
     try{ wkTick(moving); }catch{}
+    try{ if(isRun()) runSplit(moving); }catch{}
     if(live.ele!=null && live.acc!=null && live.acc<30){
       if(R.eleRef==null) R.eleRef=live.ele;
       else if(live.ele-R.eleRef>CAL.eleTh){ R.gain+=live.ele-R.eleRef; R.eleRef=live.ele; }
@@ -739,15 +756,48 @@ setInterval(()=>{
     if(R.elapsed%15===0){ IDB.set('active', R).catch(()=>LS.set('rc_active', R)); }
     document.body.classList.toggle('paused', !moving);
   }
+  live.pbuf=(live.pbuf||[]); live.pbuf.push(sp.v); if(live.pbuf.length>10) live.pbuf.shift();
   $('clock').textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
   render(sp);
   try{ liveTick(); }catch{}
 }, 1000);
 
+/* ---------- sport switch ---------- */
+function renderSport(){
+  document.querySelectorAll('.sportsel button').forEach(b=>{ const on=b.dataset.sp===S.sport; b.classList.toggle('on',on); b.setAttribute('aria-checked', on?'true':'false'); b.setAttribute('role','radio'); });
+}
+document.querySelectorAll('.sportsel').forEach(g=>g.addEventListener('click', e=>{
+  const b=e.target.closest('button[data-sp]'); if(!b) return;
+  if(state!=='idle'){ toast('Finish this activity before switching'); return; }
+  S.sport=b.dataset.sp; saveS();
+  if(WKSEL && (wkById(WKSEL)||{}).sport !== S.sport){ WKSEL=null; LS.set('rc_wk_sel', null); }
+  renderSport(); renderWk(); wkPanel(); render(); toast(isRun()?'Run mode':'Ride mode');
+}));
+
+/* ---------- run splits ---------- */
+function runSplit(moving){
+  if(!R) return;
+  if(moving && live.hr){ R.spHrS=(R.spHrS||0)+live.hr; R.spHrN=(R.spHrN||0)+1; }
+  const unit = imp()?1609.344:1000, n=Math.floor(R.dist*1000/unit);
+  R.splits = R.splits || [];
+  if(n>R.splits.length && n>0){
+    const prev=R.splits.reduce((a,x)=>a+x.s,0), t=R.moving-prev, hr=R.spHrN?Math.round(R.spHrS/R.spHrN):null;
+    R.splits.push({n, s:t, hr}); R.spHrS=0; R.spHrN=0;
+    const word = imp()?'Mile':'Kilometer';
+    $('lbT').textContent = `${word} ${n}`;
+    $('lbG').innerHTML = [['Split pace', Math.floor(t/60)+':'+String(t%60).padStart(2,'0')], ['Avg HR', hr ?? '--'], ['Total', fmtT(R.moving)], [imp()?'mi':'km', kmTo(R.dist).toFixed(2)]].map(([k,v])=>`<div>${k}<b>${v}</b></div>`).join('');
+    $('lapban').classList.add('on'); clearTimeout(lapBanT); lapBanT=setTimeout(()=>$('lapban').classList.remove('on'),7000);
+    say(`${word} ${n}. ${Math.floor(t/60)} minutes ${t%60} seconds per ${imp()?'mile':'kilometer'}.${hr?` Heart rate ${hr}.`:''}`);
+    buzz([80,60,80]);
+  }
+}
+
 /* ---------- render ---------- */
 function setBar(el, zone){ el.style.background = zone ? zoneColor(zone) : 'transparent'; }
 function render(sp=curSpeed()){
-  $('spd').textContent = kmhTo(sp.v).toFixed(1);
+  const pvAvg = avgArr(live.pbuf);
+  if(isRun()){ $('spd').textContent = paceStr(pvAvg); $('spdU').textContent = paceU(); $('spdL').textContent='Pace'; }
+  else { $('spd').textContent = kmhTo(sp.v).toFixed(1); $('spdU').textContent = imp()?'mph':'km/h'; $('spdL').textContent='Speed'; }
   $('spdSrc').textContent = sp.src;
   $('hr').textContent = live.hr ?? '--'; $('hrTile').classList.toggle('nohr', live.hr==null);
   const hz = live.hr ? hrZone(live.hr) : 0; $('hrZ').textContent = hz?'Z'+hz:''; setBar($('hrBar'),hz);
@@ -757,21 +807,26 @@ function render(sp=curSpeed()){
   $('sCsc').textContent = (live.lastCscT && fresh(live.lastCscT,8000)) ? kmhTo(live.csSpd||0).toFixed(1) : (live.cad ?? '--');
   const alt = live.ele!=null ? Math.round(mTo(live.ele)) : '--';
   $('alt2').textContent = alt;
-  $('mSpd').textContent = kmhTo(sp.v).toFixed(1); $('mHr').textContent = live.hr ?? '--'; 
+  $('mSpd').textContent = isRun() ? paceStr(pvAvg) : kmhTo(sp.v).toFixed(1); $('mSpd').parentNode.firstChild.textContent = isRun() ? 'Pace' : 'Speed'; $('mHr').textContent = live.hr ?? '--'; 
   const d=(id,on,warn)=>{$(id).className='dot'+(on?' on':warn?' warn':'');};
   d('dGps', fresh(live.lastGpsT,5000) && live.acc<30, fresh(live.lastGpsT,5000));
   d('dHr', fresh(live.lastHrT)); d('dPw', fresh(live.lastPwT,5000)); d('dCsc', fresh(live.lastCscT,8000)||fresh(live.lastCadT,5000));
   const r = R || newRide();
   if(hasPw){ $('aL').textContent='Power 3s'; $('aV').textContent=p3 ?? '--'; $('aU').textContent='W';
     const pz = p3 ? pwZone(p3) : 0; $('pwZ').textContent = pz?'Z'+pz:''; setBar($('pwBar'),pz); }
+  else if(isRun()){ $('aL').textContent='Avg pace'; $('aV').textContent = r.moving ? paceStr(r.dist/(r.moving/3600)) : '--:--'; $('aU').textContent=paceU(); $('pwZ').textContent=''; setBar($('pwBar'),0); }
   else { $('aL').textContent='Avg speed'; $('aV').textContent = r.moving ? kmhTo(r.dist/(r.moving/3600)).toFixed(1) : '0.0'; $('aU').textContent=imp()?'mph':'km/h'; $('pwZ').textContent=''; setBar($('pwBar'),0); }
-  if(hasCad){ $('bL').textContent='Cadence'; $('bV').textContent=live.cad ?? '--'; $('bU').textContent='rpm'; }
+  if(hasCad){ $('bL').textContent='Cadence'; $('bV').textContent=live.cad ?? '--'; $('bU').textContent=isRun()?'spm':'rpm'; }
   else { $('bL').textContent='Climb'; $('bV').textContent=Math.round(mTo(r.gain)); $('bU').textContent=imp()?'ft':'m'; }
   if(hasPw){ $('mPwL').firstChild.textContent='Power'; $('mPw').textContent=p3 ?? '--'; } else { $('mPwL').firstChild.textContent='Time'; $('mPw').textContent=fmtL(r.moving); }
   $('dist').textContent = kmTo(r.dist).toFixed(2);
   $('mov').textContent = fmtT(r.moving); $('ela').textContent = fmtT(r.elapsed);
-  $('avgSpd').textContent = r.moving ? kmhTo(r.dist/(r.moving/3600)).toFixed(1) : '0.0';
-  $('maxSpd').textContent = kmhTo(r.maxSpd).toFixed(1);
+  if(isRun()){ $('avgSpd').textContent = r.moving ? paceStr(r.dist/(r.moving/3600)) : '--:--'; $('maxSpd').textContent = paceStr(r.maxSpd); }
+  else { $('avgSpd').textContent = r.moving ? kmhTo(r.dist/(r.moving/3600)).toFixed(1) : '0.0'; $('maxSpd').textContent = kmhTo(r.maxSpd).toFixed(1); }
+  $('avgSpd').closest('.f').querySelector('.l span').textContent = isRun()?'Avg pace':'Avg speed';
+  $('maxSpd').closest('.f').querySelector('.l span').textContent = isRun()?'Fastest pace':'Max speed';
+  $('avgSpd').parentNode.querySelector('small') && ($('avgSpd').parentNode.querySelector('small').textContent = isRun()?paceU():(imp()?'mph':'km/h'));
+  if($('sRsc')) $('sRsc').textContent = live.lastRscT && fresh(live.lastRscT,5000) ? (live.cad ?? '--') : '--';
   $('avgPw').textContent = avg(r.pwSum,r.pwN) ?? '--';
   $('np').textContent = r.np4N ? Math.round((r.np4Sum/r.np4N)**0.25) : '--';
   $('avgHr').textContent = avg(r.hrSum,r.hrN) ?? '--';
@@ -792,8 +847,10 @@ function render(sp=curSpeed()){
 function renderLaps(){
   const laps = R ? R.laps : [];
   if(!laps.length){ $('lapList').innerHTML = '<div class="note" style="margin:6px 0">Completed laps show here.</div>'; return; }
-  $('lapList').innerHTML = `<div class="r"><span>#</span><span>Time</span><span>W</span><span>HR</span><span>${imp()?'mph':'km/h'}</span></div>` +
-    laps.slice().reverse().map(l=>`<div class="r num" style="font-size:20px"><span>${Number(l.n)}</span><span>${fmtL(l.moving)}</span><span>${l.pw ?? '--'}</span><span>${l.hr ?? '--'}</span><span>${kmhTo(l.spd).toFixed(1)}</span></div>`).join('');
+  $('lapList').innerHTML = (isRun() ? `<div class="r"><span>#</span><span>Time</span><span>Pace</span><span>HR</span><span>${imp()?'mi':'km'}</span></div>` : `<div class="r"><span>#</span><span>Time</span><span>W</span><span>HR</span><span>${imp()?'mph':'km/h'}</span></div>`) +
+    laps.slice().reverse().map(l=> isRun()
+      ? `<div class="r num" style="font-size:20px"><span>${Number(l.n)}</span><span>${fmtL(l.moving)}</span><span>${paceStr(l.spd)}</span><span>${l.hr ?? '--'}</span><span>${kmTo(l.dist).toFixed(2)}</span></div>`
+      : `<div class="r num" style="font-size:20px"><span>${Number(l.n)}</span><span>${fmtL(l.moving)}</span><span>${l.pw ?? '--'}</span><span>${l.hr ?? '--'}</span><span>${kmhTo(l.spd).toFixed(1)}</span></div>`).join('');
 }
 
 /* ---------- pages ---------- */
@@ -1325,6 +1382,7 @@ lockBtn.addEventListener('contextmenu', e=>e.preventDefault());
 
 /* ---------- controls ---------- */
 function setCtrl(){
+  document.body.classList.toggle('recording', state!=='idle');
   const b=$('bStart');
   if(state==='idle'){ b.textContent='Start'; b.className='go'; $('bEnd').disabled=true; $('bLap').disabled=true; }
   else if(state==='rec'){ b.textContent='Pause'; b.className='pause'; $('bEnd').disabled=false; $('bLap').disabled=false; }
@@ -1334,7 +1392,7 @@ function setCtrl(){
 $('bStart').onclick=()=>{
   if(locked) return;
   audioOn(); voiceOn(); try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch{}
-  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast('Ride started'); if(S.autolock) setLock(true); liveTrail=[]; if(LIVE.on){ LIVE.lastSent=0; livePost(); } if(WKSEL) wkBegin(); }
+  if(state==='idle'){ R=newRide(); state='rec'; keepAwake(true); renderLaps(); toast(isRun()?'Run started':'Ride started'); if(S.autolock) setLock(true); liveTrail=[]; if(LIVE.on){ LIVE.lastSent=0; livePost(); } if(WKSEL) wkBegin(); }
   else if(state==='rec'){ state='paused'; toast('Paused'); }
   else { state='rec'; toast('Resumed'); }
   setCtrl();
@@ -1345,7 +1403,7 @@ $('bLap').onclick=()=>{
   const lap={n, moving:L.moving, dist:L.dist, spd:L.moving?L.dist/(L.moving/3600):0, pw:avg(L.pwSum,L.pwN), hr:avg(L.hrSum,L.hrN)};
   R.laps.push(lap); R.lap=blankLap(); renderLaps(); render();
   $('lbT').textContent = `Lap ${n} done`;
-  $('lbG').innerHTML = [['Time',fmtL(lap.moving)],['Avg W',lap.pw ?? '--'],['Avg HR',lap.hr ?? '--'],[imp()?'mph':'km/h',kmhTo(lap.spd).toFixed(1)]]
+  $('lbG').innerHTML = (isRun() ? [['Time',fmtL(lap.moving)],['Pace',paceStr(lap.spd)],['Avg HR',lap.hr ?? '--'],[imp()?'mi':'km',kmTo(lap.dist).toFixed(2)]] : [['Time',fmtL(lap.moving)],['Avg W',lap.pw ?? '--'],['Avg HR',lap.hr ?? '--'],[imp()?'mph':'km/h',kmhTo(lap.spd).toFixed(1)]])
     .map(([k,v])=>`<div>${k}<b>${v}</b></div>`).join('');
   if(lapSilent){ lapSilent=false; return; }
   $('lapban').classList.add('on'); clearTimeout(lapBanT); lapBanT=setTimeout(()=>$('lapban').classList.remove('on'),6000);
@@ -1369,6 +1427,7 @@ async function finishRide(){
     distRaw:R.distRaw||0, rawGps:R.rawGps||0, rawWheel:R.rawWheel||0,
     cal:{kGps:CAL.kGps, kWheel:CAL.kWheel, eleTh:CAL.eleTh, apScale:CAL.apScale}, ap:S.ap,
     wk: WS ? {id:WS.w.id, name:WS.w.name, hard:WS.w.hard, done:WS.done, comp: WS.tot ? Math.round(WS.inT/WS.tot*100) : null} : null,
+    sport:S.sport, splits:R.splits||[],
     route: route ? route.name : null, backed:false, trackBacked:false, hasTrack:R.pts.length>0, maxHr:R.maxHr||null};
   if(LIVE.on) livePost({end:1});
   const rides = LS.get('rc_rides',[]); rides.unshift(sum); LS.set('rc_rides', rides.slice(0,300));
@@ -1408,7 +1467,7 @@ function openSummary(id){
   const r=LS.get('rc_rides',[]).find(x=>x.id===id); if(!r) return;
   const dU=imp()?'mi':'km', sU=imp()?'mph':'km/h', eU=imp()?'ft':'m';
   openModal(`<h3>${rideTitle(r)}</h3><p class="note" style="margin:0">Saved</p><div class="athumb" id="sumth" style="margin:10px 0;border-radius:14px;overflow:hidden"></div>
-    <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Moving<b>${fmtT(r.moving)}</b></div><div>Avg speed<b>${kmhTo(r.avgSpd).toFixed(1)}</b></div>
+    <div class="sumg"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Moving<b>${fmtT(r.moving)}</b></div>${r.sport==='run'?`<div>Avg pace<b>${paceStr(r.avgSpd)}</b></div>`:`<div>Avg speed<b>${kmhTo(r.avgSpd).toFixed(1)}</b></div>`}
       <div>Avg HR<b>${r.avgHr ?? '--'}</b></div>${r.wk?`<div style="grid-column:1/-1">${r.wk.name}<b>${r.wk.comp!=null?r.wk.comp+'% in target':(r.wk.done?'Completed':'Partly done')}</b></div>`:''}<div>Max HR<b>${r.maxHr ?? '--'}</b></div><div>Climb<b>${Math.round(mTo(r.gain))} ${eU}</b></div></div>
     <p class="note" style="margin:6px 0 0">Saved on this phone. Save GPX keeps a copy in Files (or send it to Strava if your watch didn't record this ride).</p>
     <div class="mbtns col"><button class="go" id="sGpx">Save GPX</button><button id="sCf">Compare with Garmin (tunes Spoke)</button><button id="sDone">Done</button></div>`);
@@ -1443,6 +1502,7 @@ async function applyGarmin(id, g){
   if(g.dist){ res.distErr=(r.dist-g.dist)/g.dist*100;
     if(r.distRaw>1.5){ const wheelMain=(r.rawWheel||0)>(r.rawGps||0);
       if(wheelMain){ const kNew=(g.dist-(r.rawGps||0)*CAL.kGps)/r.rawWheel; if(isFinite(kNew)) CAL.kWheel=clamp(CAL.kWheel+(clamp(kNew,.85,1.15)-CAL.kWheel)*a,.85,1.15); }
+      else if(r.sport==='run'){ const kNew=g.dist/r.rawGps, k0=CAL.kRun||1; if(isFinite(kNew)) CAL.kRun=clamp(k0+(clamp(kNew,.85,1.15)-k0)*a,.85,1.15); }
       else { const kNew=(g.dist-(r.rawWheel||0)*CAL.kWheel)/r.rawGps; if(isFinite(kNew)) CAL.kGps=clamp(CAL.kGps+(clamp(kNew,.85,1.15)-CAL.kGps)*a,.85,1.15); } } }
   if(g.gain!=null){ res.gainErr = g.gain>0 ? (r.gain-g.gain)/g.gain*100 : null; res.gainDiff=r.gain-g.gain;
     const eles=((await getTrack(id))||[]).map(p=>p.ele).filter(e=>e!=null);
@@ -1454,7 +1514,7 @@ async function applyGarmin(id, g){
   CAL.n++; CAL.hist.unshift({id, ...res}); CAL.hist=CAL.hist.slice(0,40); saveCal();
   r.garmin=g; r.garminRes=res; r.backed=false; LS.set('rc_rides', rides);
   const dU=imp()?'mi':'km', eU=imp()?'ft':'m';
-  if(res.distErr!=null) notes.push(`Distance: Spoke was ${pct(res.distErr)} (${(kmTo(r.dist-g.dist)>=0?'+':'')}${kmTo(r.dist-g.dist).toFixed(2)} ${dU}). ${CAL.kGps!==before.kGps?`GPS correction ×${before.kGps.toFixed(3)} → ×${CAL.kGps.toFixed(3)}.`:CAL.kWheel!==before.kWheel?`Wheel correction ×${before.kWheel.toFixed(3)} → ×${CAL.kWheel.toFixed(3)}.`:'Ride too short to tune on (needs ~1 mi).'}`);
+  if(res.distErr!=null) notes.push(`Distance: Spoke was ${pct(res.distErr)} (${(kmTo(r.dist-g.dist)>=0?'+':'')}${kmTo(r.dist-g.dist).toFixed(2)} ${dU}). ${(CAL.kRun||1)!==(before.kRun||1)?`Run distance correction ×${(before.kRun||1).toFixed(3)} → ×${CAL.kRun.toFixed(3)}.`:CAL.kGps!==before.kGps?`GPS correction ×${before.kGps.toFixed(3)} → ×${CAL.kGps.toFixed(3)}.`:CAL.kWheel!==before.kWheel?`Wheel correction ×${before.kWheel.toFixed(3)} → ×${CAL.kWheel.toFixed(3)}.`:'Ride too short to tune on (needs ~1 mi).'}`);
   if(res.gainDiff!=null) notes.push(`Climbing: Spoke ${res.gainDiff>=0?'+':''}${Math.round(mTo(res.gainDiff))} ${eU}. ${CAL.eleTh!==before.eleTh?`Elevation filter ${before.eleTh.toFixed(1)} → ${CAL.eleTh.toFixed(1)} m.`:'Elevation filter unchanged.'}`);
   if(res.movErr!=null) notes.push(`Moving time: Spoke ${res.movErr>=0?'+':'−'}${fmtL(Math.abs(res.movErr))}. ${CAL.apScale!==before.apScale?`Auto-pause sensitivity adjusted (×${CAL.apScale.toFixed(2)}).`:S.ap?'Auto-pause unchanged.':'Auto-pause is off, so not tuned.'}`);
   if(res.hrErr!=null) notes.push(`Heart rate: Spoke avg ${res.hrErr>=0?'+':''}${res.hrErr} bpm vs Garmin.${Math.abs(res.hrErr)>3?' A gap this big usually means the broadcast dropped out during the ride.':''}`);
@@ -1469,7 +1529,7 @@ function renderCal(){
   const h=CAL.hist, avgAbs = arr => { const v=arr.filter(x=>x!=null&&isFinite(x)); return v.length ? v.reduce((s,x)=>s+Math.abs(x),0)/v.length : null; };
   const recent=avgAbs(h.slice(0,5).map(x=>x.distErr)), early=h.length>=8 ? avgAbs(h.slice(-5).map(x=>x.distErr)) : null;
   c.innerHTML = `<div class="calg">
-      <div>GPS distance<b class="num">×${CAL.kGps.toFixed(3)}</b></div><div>Wheel sensor<b class="num">×${CAL.kWheel.toFixed(3)}</b></div>
+      <div>GPS distance<b class="num">×${CAL.kGps.toFixed(3)}</b></div><div>Wheel sensor<b class="num">×${CAL.kWheel.toFixed(3)}</b></div><div>Run distance<b class="num">×${(CAL.kRun||1).toFixed(3)}</b></div>
       <div>Elevation filter<b class="num">${CAL.eleTh.toFixed(1)} m</b></div><div>Auto-pause<b class="num">×${CAL.apScale.toFixed(2)}</b></div></div>
     <p class="note" style="margin:10px 0 6px">${CAL.n} ride${CAL.n>1?'s':''} confirmed. Avg distance error, last 5: <b>${recent!=null?recent.toFixed(1)+'%':'--'}</b>${early!=null?` (first 5: ${early.toFixed(1)}%)`:''}</p>
     <div class="calt"><span>Ride</span><span>Dist</span><span>Climb</span><span>Time</span><span>HR</span>
@@ -1555,7 +1615,7 @@ window.addEventListener('online', ()=>backupPending());
 setTimeout(()=>backupPending(), 4000);
 
 /* ---------- history + GPX ---------- */
-const rideTitle = r => { if(r.wk) return r.wk.name; const h=new Date(r.id).getHours(); return (h<5?'Night':h<11?'Morning':h<17?'Afternoon':h<21?'Evening':'Night')+' ride'; };
+const rideTitle = r => { if(r.wk) return r.wk.name; const h=new Date(r.id).getHours(); return (h<5?'Night':h<11?'Morning':h<17?'Afternoon':h<21?'Evening':'Night')+(r.sport==='run'?' run':' ride'); };
 function thumbSvg(pts){
   const P=pts.filter(p=>p.lat!=null); if(P.length<2) return '';
   const k=Math.cos(P[0].lat*Math.PI/180); let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
@@ -1571,15 +1631,16 @@ function renderHist(){
   const wk0=new Date(); wk0.setHours(0,0,0,0); wk0.setDate(wk0.getDate()-((wk0.getDay()+6)%7));
   const wk=rides.filter(r=>r.id>=wk0.getTime());
   const hm = s => { const h=Math.floor(s/3600), m=Math.round(s%3600/60); return h?`${h}h ${m}m`:`${m}m`; };
-  $('wkly').innerHTML = `<div class="wkly"><div class="wt">This week</div><div>Rides<b>${wk.length}</b></div><div>Distance<b>${kmTo(wk.reduce((a,r)=>a+r.dist,0)).toFixed(1)} ${dU}</b></div><div>Time<b>${hm(wk.reduce((a,r)=>a+r.moving,0))}</b></div></div>`;
+  const wr=wk.filter(r=>r.sport!=='run'), wn=wk.filter(r=>r.sport==='run'), sumD=a=>kmTo(a.reduce((x,r)=>x+r.dist,0)).toFixed(1);
+  $('wkly').innerHTML = `<div class="wkly"><div class="wt">This week</div><div>Rides<b>${wr.length}</b><em>${sumD(wr)} ${dU}</em></div><div>Runs<b>${wn.length}</b><em>${sumD(wn)} ${dU}</em></div><div>Time<b>${hm(wk.reduce((a,r)=>a+r.moving,0))}</b></div></div>`;
   if(!rides.length){ $('hist').innerHTML='<div class="act"><div class="ah"><b>No rides yet</b><span>Tap Ride, then Start. Your rides appear here with their map and stats.</span></div></div>'; return; }
   const esc4=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   $('hist').innerHTML = rides.slice(0,60).map(r=>{
     const d=new Date(r.id), id=Number(r.id);
     return `<div class="act"><div class="ah"><b>${esc4(rideTitle(r))}</b><span>${d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})} at ${d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}${r.route?', '+esc4(r.route):''}</span></div>
       <div class="athumb" id="th-${id}"></div>
-      <div class="as"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div><div>Elev gain<b>${Math.round(mTo(r.gain))} ${eU}</b></div><div>Time<b>${fmtT(r.moving)}</b></div></div>
-      <div class="chips">${r.avgHr?`<span class="chip">Avg HR ${Number(r.avgHr)}</span>`:''}<span class="chip">${kmhTo(r.avgSpd).toFixed(1)} ${imp()?'mph':'km/h'} avg</span>${r.avgPw?`<span class="chip">${Number(r.avgPw)} W avg</span>`:''}${r.wk&&r.wk.comp!=null?`<span class="chip wk">${Number(r.wk.comp)}% in target</span>`:''}${r.garmin?`<span class="chip ok">Garmin checked${r.garminRes&&r.garminRes.distErr!=null?' '+pct(r.garminRes.distErr):''}</span>`:''}</div>
+      <div class="as"><div>Distance<b>${kmTo(r.dist).toFixed(2)} ${dU}</b></div>${r.sport==='run'?`<div>Pace<b>${paceStr(r.avgSpd)} ${paceU()}</b></div>`:`<div>Elev gain<b>${Math.round(mTo(r.gain))} ${eU}</b></div>`}<div>Time<b>${fmtT(r.moving)}</b></div></div>
+      <div class="chips">${r.avgHr?`<span class="chip">Avg HR ${Number(r.avgHr)}</span>`:''}${r.sport==='run'?`<span class="chip">${Math.round(mTo(r.gain))} ${eU} climb</span>`:`<span class="chip">${kmhTo(r.avgSpd).toFixed(1)} ${imp()?'mph':'km/h'} avg</span>`}${r.avgPw?`<span class="chip">${Number(r.avgPw)} W avg</span>`:''}${r.wk&&r.wk.comp!=null?`<span class="chip wk">${Number(r.wk.comp)}% in target</span>`:''}${r.garmin?`<span class="chip ok">Garmin checked${r.garminRes&&r.garminRes.distErr!=null?' '+pct(r.garminRes.distErr):''}</span>`:''}</div>
       <div class="rb">${r.garmin?'':`<button data-cf="${id}">Compare with Garmin</button>`}${(r.hasTrack||(r.trackBacked&&bkReady()))?`<button data-gpx="${id}">Save GPX</button>`:''}</div></div>`;
   }).join('');
   (async()=>{ for(const r of rides.slice(0,30)){ if(!r.hasTrack) continue; const el=$('th-'+Number(r.id)); if(!el) continue; try{ const t=await getTrack(r.id); if(t) el.innerHTML=thumbSvg(t); }catch{} } })();
@@ -1595,7 +1656,7 @@ async function exportGpx(id){
   const gpx=`<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="Ride Computer" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
 <metadata><time>${new Date(id).toISOString()}</time></metadata>
-<trk><name>Ride ${new Date(id).toLocaleDateString()}</name><type>cycling</type><trkseg>
+<trk><name>${(LS.get('rc_rides',[]).find(x=>x.id===id)||{}).sport==='run'?'Run':'Ride'} ${new Date(id).toLocaleDateString()}</name><type>${(LS.get('rc_rides',[]).find(x=>x.id===id)||{}).sport==='run'?'running':'cycling'}</type><trkseg>
 ${trk}
 </trkseg></trk></gpx>`;
   const name=`ride-${new Date(id).toISOString().slice(0,16).replace(/[:T]/g,'-')}.gpx`;
@@ -1627,8 +1688,18 @@ const WORKOUTS = [
   {id:'hills', name:'Hill repeats 6 × 2', cat:'Climbing', hard:3, desc:'Find a hill of 2 minutes or more. Ride up hard, roll back down to recover.', steps:[...WU(15), ...reps(6, st('Climb', 2, 5, 5), st('Roll down', 3, 1, 1)), ...CD()]},
   {id:'ou', name:'Over-unders 3 × 9', cat:'Climbing', hard:3, desc:'2 min just under threshold, 1 min surge above, repeated. Teaches you to recover while working.', steps:[...WU(), ...reps(3, {n:'Block', s:0, z:4}, st('Easy', 5, 2, 2)).flatMap(x=> x.n.startsWith('Block') ? [st('Under '+x.n.slice(6), 2, 4, 4), st('Over', 1, 5, 5), st('Under', 2, 4, 4), st('Over', 1, 5, 5), st('Under', 2, 4, 4), st('Over', 1, 5, 5)] : [x]), ...CD()]},
   {id:'sprint', name:'Sprints 8 × 15 s', cat:'Faster', hard:2, desc:'All-out 15-second sprints with full recovery. Seated for the first half, standing for the rest.', steps:[...WU(15), ...reps(8, st('Sprint', 0.25, 5, 6, 'feel'), st('Recover', 4.75, 1, 1)), ...CD()]},
+  {id:'rrec', sport:'run', name:'Recovery jog', cat:'Recover', hard:0, desc:'Very easy 25 minutes. Walk breaks are fine.', steps:[st('Easy jog', 25, 1, 1)]},
+  {id:'reasy30', sport:'run', name:'Easy run, 30 min', cat:'Endurance', hard:0, desc:'Conversational pace. Most of your running should feel like this.', steps:[st('Easy', 30, 2, 2)]},
+  {id:'reasy45', sport:'run', name:'Easy run, 45 min', cat:'Endurance', hard:0, desc:'Steady aerobic running. If you can\'t talk, slow down.', steps:[st('Easy', 45, 2, 2)]},
+  {id:'rlong', sport:'run', name:'Long run, 75 min', cat:'Endurance', hard:1, desc:'Your weekly long run. Slow enough to chat the whole way; bring water.', steps:[st('Easy', 75, 2, 2)]},
+  {id:'rtempo', sport:'run', name:'Tempo run, 20 min', cat:'Faster', hard:2, desc:'Comfortably hard: a pace you could hold for about an hour.', steps:[...WU(10), st('Tempo', 20, 3, 3), ...CD(10)]},
+  {id:'rthr', sport:'run', name:'Threshold 3 × 8 min', cat:'Faster', hard:2, desc:'Hard but controlled, with 2 minutes of easy jogging between.', steps:[...WU(), ...reps(3, st('Threshold', 8, 4, 4), st('Jog', 2, 1, 1)), ...CD()]},
+  {id:'rint', sport:'run', name:'Intervals 6 × 3 min', cat:'Faster', hard:3, desc:'Roughly 800 m repeats at hard effort, 2 minutes easy jog between.', steps:[...WU(12), ...reps(6, st('Interval', 3, 5, 5), st('Jog', 2, 1, 1)), ...CD()]},
+  {id:'rfart', sport:'run', name:'Fartlek 8 × 1 min', cat:'Faster', hard:2, desc:'1 minute fast, 1 minute easy. Short on time, big on fitness.', steps:[...WU(), ...reps(8, st('Fast', 1, 4, 5), st('Easy', 1, 2, 1)), ...CD()]},
+  {id:'rstrides', sport:'run', name:'Easy run + strides', cat:'Faster', hard:1, desc:'Easy running, then 6 × 20 s quick, relaxed strides with a walk back. Judge by feel.', steps:[st('Easy', 25, 2, 2), ...reps(6, st('Stride', 1/3, 5, 6, 'feel'), st('Walk back', 2/3, 1, 1, 'feel')), st('Cool down', 5, 1, 1)]},
+  {id:'rhills', sport:'run', name:'Hill sprints 8 × 30 s', cat:'Climbing', hard:3, desc:'Find a steady hill. Run up hard for 30 s, walk down for 90 s.', steps:[...WU(15), ...reps(8, st('Hill sprint', 0.5, 5, 6, 'feel'), st('Walk down', 1.5, 1, 1, 'feel')), ...CD()]},
 ];
-WORKOUTS.forEach(w=>{ w.steps.forEach(s=>{ s.s=Math.max(3, Math.round(s.s*WK_SCALE)); }); w.mins=Math.round(w.steps.reduce((a,s)=>a+s.s,0)/60/WK_SCALE); });
+WORKOUTS.forEach(w=>{ if(!w.sport) w.sport='ride'; });WORKOUTS.forEach(w=>{ w.steps.forEach(s=>{ s.s=Math.max(3, Math.round(s.s*WK_SCALE)); }); w.mins=Math.round(w.steps.reduce((a,s)=>a+s.s,0)/60/WK_SCALE); });
 const wkById = id => WORKOUTS.find(w=>w.id===id);
 const zoneRange = s => { const z=HRZ[Math.min(5,s.z)]; return [Math.round(z[0]*S.maxhr), Math.round(z[1]*S.maxhr)]; };
 const pwRange = s => { const z=PWZ[s.p||s.z]; return [Math.round(z[0]*S.ftp), Math.round(z[1]*S.ftp)]; };
@@ -1694,7 +1765,7 @@ function wkPanel(){
 function renderWk(){
   const box=$('wkList'); if(!box) return;
   const cats=['Recover','Endurance','Faster','Climbing'];
-  box.innerHTML = cats.map(c=>`<h3 class="wkcat">${c}</h3>`+WORKOUTS.filter(w=>w.cat===c).map(w=>`
+  box.innerHTML = cats.map(c=>`<h3 class="wkcat">${c}</h3>`+WORKOUTS.filter(w=>w.cat===c && w.sport===S.sport).map(w=>`
     <div class="wkrow${WKSEL===w.id?' sel':''}"><div class="wki"><b>${w.name}</b><span>${w.mins} min. ${w.desc}</span>${wkProfile(w,null)}</div>
     <button data-wk="${w.id}" class="${WKSEL===w.id?'':'go'}">${WKSEL===w.id?'Selected':'Ride this'}</button></div>`).join('')).join('');
   const sel=wkById(WKSEL);
@@ -1705,6 +1776,8 @@ $('wkList').addEventListener('click', e=>{ const b=e.target.closest('button[data
 
 /* ---------- coach (rule-based: reads your recent rides) ---------- */
 function coachPick(time, feel, goal){
+  const RUNMAP={'rec30':'rrec','z2-45':'reasy30','z2-60':'reasy45','z2-90':'rlong','z2-120':'rlong','tempo':'rtempo','ss':'rthr','thr':'rthr','vo2':'rint','3030':'rfart','sprint':'rstrides','hills':'rhills','ou':'rthr'};
+  const wkById = id => WORKOUTS.find(w=>w.id===(isRun()?(RUNMAP[id]||id):id));
   const rides=LS.get('rc_rides',[]), now=Date.now(), day=86400000;
   const recent=rides.filter(r=>now-r.id<7*day);
   const hardOf = r => (r.wk && r.wk.hard>=2) || (r.avgHr && r.avgHr>=0.8*S.maxhr);
@@ -1712,7 +1785,8 @@ function coachPick(time, feel, goal){
   const daysSinceHard = hard.length ? (now-hard[0].id)/day : 99;
   const hard4 = hard.filter(r=>now-r.id<4*day).length;
   const weekH = recent.reduce((a,r)=>a+r.moving/3600,0);
-  const lastHardWk = hard.find(r=>r.wk) ? hard.find(r=>r.wk).wk.id : null;
+  const lastHardWk0 = hard.find(r=>r.wk) ? hard.find(r=>r.wk).wk.id : null;
+  const lastHardWk = ({rint:'vo2', rfart:'3030'})[lastHardWk0] || lastHardWk0;
   const fit = ids => ids.map(wkById).filter(w=>w && w.mins<=time+5).sort((a,b)=>b.mins-a.mins)[0] || wkById(ids[ids.length-1]);
   const z2 = () => fit(['z2-120','z2-90','z2-60','z2-45']);
   const why=[]; let pick, alt;
@@ -1723,10 +1797,10 @@ function coachPick(time, feel, goal){
   else if(hard4>=2){ pick=z2(); alt=wkById('tempo'); why.push(`${hard4} hard rides in the last 4 days. One easy aerobic ride now sets up a good hard day next.`); }
   else if(goal==='base'){ pick = feel==='fresh' && time>=60 ? (time>=85?wkById('ss'):wkById('tempo')) : z2(); alt=z2()===pick?wkById('tempo'):z2(); why.push(feel==='fresh'&&time>=60?'You feel fresh with time to spare: a steady harder block on top of aerobic riding builds base fastest.':'Base comes from lots of steady zone 2. Keep it conversational.'); }
   else if(goal==='faster'){
-    if(time<45){ pick=wkById('3030'); alt=wkById('sprint'); why.push('Short on time: 30/30s give the most speed work per minute.'); }
-    else if(lastHardWk==='vo2' || lastHardWk==='3030'){ pick=wkById(time>=70?'ss':'thr'); alt=wkById('vo2'); why.push('Your last hard workout was short intervals, so today switches to longer threshold work.'); }
-    else { pick=wkById('vo2'); alt=wkById(time>=70?'ss':'thr'); why.push(`${daysSinceHard>=99?'No recent hard rides':'Rested since your last hard day'}: a good day for VO2 intervals to raise your ceiling.`); } }
-  else { pick=wkById(time>=60?'hills':'ou'); alt=wkById(time>=60?'ou':'thr'); why.push('For climbing: repeated hard efforts at climbing intensity. Use a real hill if you have one nearby.'); }
+    if(time<45){ pick=wkById('3030'); alt=wkById('sprint'); why.push(isRun()?'Short on time: fartlek gives the most speed work per minute.':'Short on time: 30/30s give the most speed work per minute.'); }
+    else if(lastHardWk==='vo2' || lastHardWk==='3030'){ pick=wkById(time>=70?'ss':'thr'); alt=wkById('vo2'); why.push('Your last hard workout was short, fast intervals, so today switches to longer threshold work.'); }
+    else { pick=wkById('vo2'); alt=wkById(time>=70?'ss':'thr'); why.push(`${daysSinceHard>=99?'No recent hard rides':'Rested since your last hard day'}: a good day for ${isRun()?'hard intervals':'VO2 intervals'} to raise your ceiling.`); } }
+  else { pick=wkById(time>=60?'hills':'ou'); alt=wkById(time>=60?'ou':'thr'); why.push(isRun()?'For hills: short, hard uphill efforts build strength and form.':'For climbing: repeated hard efforts at climbing intensity. Use a real hill if you have one nearby.'); }
   if(pick.mins>time+10) why.push(`It runs ${pick.mins} min, a bit over your ${time}; cut the cool down short if needed.`);
   if(S.maxhr===185) why.push('Your zones use the default max heart rate (185). Set your real max in Settings for accurate targets.');
   return {pick, alt, why};
@@ -1758,7 +1832,7 @@ async function liveEnc(obj){
 function livePayload(extra={}){
   const r=R||newRide();
   return {v:1, n:LIVE.name||'', u:S.units, t:Date.now(), la:live.lat!=null?+live.lat.toFixed(5):null, lo:live.lon!=null?+live.lon.toFixed(5):null, a:live.acc!=null?Math.round(live.acc):null,
-    s:+curSpeed().v.toFixed(1), h:live.hr ?? null, d:+r.dist.toFixed(3), m:r.moving, r:route?route.name:null, p:liveTrail.slice(-4), sos:sosOn?1:0, end:0, ...extra};
+    sp:S.sport, s:+curSpeed().v.toFixed(1), h:live.hr ?? null, d:+r.dist.toFixed(3), m:r.moving, r:route?route.name:null, p:liveTrail.slice(-4), sos:sosOn?1:0, end:0, ...extra};
 }
 async function livePost(extra){
   if(!LIVE.on || !LIVE.topic) return false;
@@ -1950,7 +2024,7 @@ $('hrTile').addEventListener('click', ()=>{ if($('hrTile').classList.contains('n
   if(act && act.start && !R){ R=Object.assign(newRide(), act); state='paused'; setCtrl(); renderLaps(); toast('Recovered unfinished ride. Tap Resume or End.'); }
   migrateTracks();
 })();
-renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg(); renderInstall(); renderWk(); wkPanel();
+renderHist(); renderLaps(); render(); renderCal(); bkStatus(); renderLock(); applySat(); offStatus(); renderLive(); renderEmg(); renderInstall(); renderWk(); wkPanel(); renderSport();
 }
 </script>
 </body>
